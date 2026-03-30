@@ -2,6 +2,7 @@ using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
+using FluentValidation;
 using MediatR;
 
 namespace AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
@@ -13,17 +14,18 @@ public sealed record LoginUserCommand(
 public sealed class LoginUserCommandHandler(
     IUserRepository userRepository,
     IPasswordHasher passwordHasher,
-    IJwtTokenService jwtTokenService)
+    IJwtTokenService jwtTokenService,
+    IValidator<LoginUserCommand> validator)
     : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
 {
     public async Task<Result<AuthResponse>> Handle(
         LoginUserCommand command,
         CancellationToken cancellationToken)
     {
-        var validationErrors = Validate(command);
-        if (validationErrors.Count > 0)
+        var validationResult = await validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
         {
-            return Result.Fail<AuthResponse>(validationErrors);
+            return Result.Fail<AuthResponse>(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
         }
 
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
@@ -42,21 +44,18 @@ public sealed class LoginUserCommandHandler(
 
         return Result.Success(authResponse);
     }
+}
 
-    private static IReadOnlyCollection<string> Validate(LoginUserCommand command)
+public sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
+{
+    public LoginUserCommandValidator()
     {
-        var errors = new List<string>();
+        RuleFor(command => command.Username)
+            .NotEmpty()
+            .WithMessage("Username is required.");
 
-        if (string.IsNullOrWhiteSpace(command.Username))
-        {
-            errors.Add("Username is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(command.Password))
-        {
-            errors.Add("Password is required.");
-        }
-
-        return errors;
+        RuleFor(command => command.Password)
+            .NotEmpty()
+            .WithMessage("Password is required.");
     }
 }
