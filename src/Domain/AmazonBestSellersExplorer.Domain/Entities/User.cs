@@ -18,13 +18,12 @@ public sealed class User : Entity<Guid>
         Guid id,
         Username username,
         string passwordHash,
-        DateTime createdAtUtc,
-        IEnumerable<FavoriteProduct>? favoriteProducts = null)
+        DateTime createdAtUtc)
         : base(id, createdAtUtc)
     {
         Username = username;
         PasswordHash = passwordHash;
-        _favoriteProducts = favoriteProducts?.ToList() ?? [];
+        _favoriteProducts = [];
     }
 
     public static Result<User> Create(string username, string passwordHash)
