@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
+using AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi.Models;
 
 namespace AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi;
 
@@ -89,38 +89,5 @@ public sealed class RapidApiAmazonBestSellerService(HttpClient httpClient) : IAm
             out var rating)
             ? rating
             : null;
-    }
-
-    private sealed class RapidApiBestSellersResponse
-    {
-        [JsonPropertyName("data")]
-        public RapidApiBestSellersData? Data { get; init; }
-    }
-
-    private sealed class RapidApiBestSellersData
-    {
-        [JsonPropertyName("best_sellers")]
-        public IReadOnlyList<RapidApiBestSellerProduct>? BestSellers { get; init; }
-    }
-
-    private sealed class RapidApiBestSellerProduct
-    {
-        [JsonPropertyName("asin")]
-        public string? Asin { get; init; }
-
-        [JsonPropertyName("product_title")]
-        public string? ProductTitle { get; init; }
-
-        [JsonPropertyName("product_price")]
-        public string? ProductPrice { get; init; }
-
-        [JsonPropertyName("product_star_rating")]
-        public string? ProductStarRating { get; init; }
-
-        [JsonPropertyName("product_url")]
-        public string? ProductUrl { get; init; }
-
-        [JsonPropertyName("product_photo")]
-        public string? ProductPhoto { get; init; }
     }
 }

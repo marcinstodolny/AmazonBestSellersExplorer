@@ -2,6 +2,7 @@ using AmazonBestSellersExplorer.Application.Features.Favorites.AddFavoriteProduc
 using AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
 using AmazonBestSellersExplorer.Application.Features.Favorites.GetFavoriteProducts;
 using AmazonBestSellersExplorer.Application.Features.Favorites.RemoveFavoriteProduct;
+using AmazonBestSellersExplorer.API.Contracts.Favorites;
 using AmazonBestSellersExplorer.Domain.Base;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

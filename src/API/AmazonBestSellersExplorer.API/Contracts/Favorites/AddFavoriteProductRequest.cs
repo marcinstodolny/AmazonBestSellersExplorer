@@ -1,4 +1,4 @@
-namespace AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
+namespace AmazonBestSellersExplorer.API.Contracts.Favorites;
 
 public sealed record AddFavoriteProductRequest(
     string AmazonProductId,
