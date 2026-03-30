@@ -4,8 +4,8 @@ namespace AmazonBestSellersExplorer.Domain.ValueObjects;
 
 public sealed record Username
 {
-    private const int MinLength = 5;
-    private const int MaxLength = 50;
+    public const int MinLength = 5;
+    public const int MaxLength = 50;
 
     private Username(string value)
     {
@@ -36,6 +36,15 @@ public sealed record Username
         }
 
         return errors.Count > 0 ? Result.Fail<Username>(errors) : Result.Success(new Username(value));
+    }
+
+    public static Username FromPersistence(string value)
+    {
+        var result = Create(value);
+
+        return result.TryGetValue(out var username)
+            ? username
+            : throw new InvalidOperationException("Persisted username value is invalid.");
     }
 
     public override string ToString() => Value;
