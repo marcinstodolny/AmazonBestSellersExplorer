@@ -1,10 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Application.Features.Auth.Services;
 using AmazonBestSellersExplorer.Domain.Entities;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,9 +12,9 @@ namespace AmazonBestSellersExplorer.Infrastructure.Authentication;
 
 public sealed class JwtTokenService(IOptions<JwtOptions> configuredOptions) : IJwtTokenService
 {
-    public AuthResponse GenerateToken(User user, JwtOptions options)
+    public AuthResponse GenerateToken(User user)
     {
-        var jwtOptions = ResolveOptions(options);
+        var jwtOptions = configuredOptions.Value;
         ValidateOptions(jwtOptions);
 
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(jwtOptions.ExpirationMinutes);
@@ -39,18 +39,6 @@ public sealed class JwtTokenService(IOptions<JwtOptions> configuredOptions) : IJ
         var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
 
         return new AuthResponse(accessToken, expiresAtUtc);
-    }
-
-    private JwtOptions ResolveOptions(JwtOptions options)
-    {
-        var fallbackOptions = configuredOptions.Value;
-
-        return string.IsNullOrWhiteSpace(options.Issuer)
-            || string.IsNullOrWhiteSpace(options.Audience)
-            || string.IsNullOrWhiteSpace(options.SecretKey)
-            || options.ExpirationMinutes <= 0
-            ? fallbackOptions
-            : options;
     }
 
     private static void ValidateOptions(JwtOptions options)
