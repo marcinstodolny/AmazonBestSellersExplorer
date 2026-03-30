@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Domain.Abstraction;
 using AmazonBestSellersExplorer.Domain.Base;
+using AmazonBestSellersExplorer.Domain.ValueObjects;
 
 namespace AmazonBestSellersExplorer.Domain.Entities;
 
@@ -7,7 +8,7 @@ public sealed class User : Entity<Guid>
 {
     private readonly List<FavoriteProduct> _favoriteProducts;
 
-    public string Username { get; private set; }
+    public Username Username { get; private set; }
 
     public string PasswordHash { get; private set; }
 
@@ -15,7 +16,7 @@ public sealed class User : Entity<Guid>
 
     private User(
         Guid id,
-        string username,
+        Username username,
         string passwordHash,
         DateTime createdAtUtc,
         IEnumerable<FavoriteProduct>? favoriteProducts = null)
@@ -30,30 +31,42 @@ public sealed class User : Entity<Guid>
     {
         var id = Guid.NewGuid();
         var createdAtUtc = DateTime.UtcNow;
-        var errors = Validate(id, username, passwordHash);
+        var usernameResult = Username.Create(username);
+        var errors = Validate(id, usernameResult, passwordHash);
 
         if (errors.Count > 0)
         {
             return Result.Fail<User>(errors);
         }
 
+        if (!usernameResult.TryGetValue(out var usernameValue))
+        {
+            return Result.Fail<User>(usernameResult.Errors);
+        }
+
         return Result.Success(new User(
             id,
-            username,
+            usernameValue,
             passwordHash,
             createdAtUtc));
     }
 
     public Result Update(string username, string passwordHash)
     {
-        var errors = Validate(Id, username, passwordHash);
+        var usernameResult = Username.Create(username);
+        var errors = Validate(Id, usernameResult, passwordHash);
 
         if (errors.Count > 0)
         {
             return Result.Fail(errors);
         }
 
-        Username = username;
+        if (!usernameResult.TryGetValue(out var usernameValue))
+        {
+            return Result.Fail(usernameResult.Errors);
+        }
+
+        Username = usernameValue;
         PasswordHash = passwordHash;
 
         return Result.Success();
@@ -67,6 +80,11 @@ public sealed class User : Entity<Guid>
         string productUrl,
         string? imageUrl)
     {
+        if (HasFavorite(amazonProductId))
+        {
+            return Result.Fail<FavoriteProduct>("Product is already in favorites.");
+        }
+
         var favoriteProductResult = FavoriteProduct.Create(
             Id,
             amazonProductId,
@@ -86,7 +104,31 @@ public sealed class User : Entity<Guid>
         return favoriteProductResult;
     }
 
-    private static IReadOnlyCollection<string> Validate(Guid id, string username, string passwordHash)
+    public bool HasFavorite(string amazonProductId)
+    {
+        return !string.IsNullOrWhiteSpace(amazonProductId)
+            && FindFavoriteProduct(amazonProductId) is not null;
+    }
+
+    public Result RemoveFavoriteProduct(string amazonProductId)
+    {
+        if (string.IsNullOrWhiteSpace(amazonProductId))
+        {
+            return Result.Fail("Amazon product id is required.");
+        }
+
+        var favoriteProduct = FindFavoriteProduct(amazonProductId);
+        if (favoriteProduct is null)
+        {
+            return Result.Fail("Favorite product was not found.");
+        }
+
+        _favoriteProducts.Remove(favoriteProduct);
+
+        return Result.Success();
+    }
+
+    private static IReadOnlyCollection<string> Validate(Guid id, Result<Username> usernameResult, string passwordHash)
     {
         var errors = new List<string>();
 
@@ -95,9 +137,9 @@ public sealed class User : Entity<Guid>
             errors.Add("User id cannot be empty.");
         }
 
-        if (string.IsNullOrWhiteSpace(username))
+        if (usernameResult.IsFailed)
         {
-            errors.Add("Username is required.");
+            errors.AddRange(usernameResult.Errors);
         }
 
         if (string.IsNullOrWhiteSpace(passwordHash))
@@ -106,5 +148,11 @@ public sealed class User : Entity<Guid>
         }
 
         return errors;
+    }
+
+    private FavoriteProduct? FindFavoriteProduct(string amazonProductId)
+    {
+        return _favoriteProducts.FirstOrDefault(product =>
+            string.Equals(product.AmazonProductId, amazonProductId, StringComparison.OrdinalIgnoreCase));
     }
 }
