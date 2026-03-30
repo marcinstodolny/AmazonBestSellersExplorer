@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { guestOnlyGuard } from './core/auth/guest-only.guard';
 
 export const appRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'bestsellers' },
@@ -11,12 +12,14 @@ export const appRoutes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [guestOnlyGuard],
     loadComponent: () =>
       import('./features/auth/pages/login-page.component')
         .then(module => module.LoginPageComponent)
   },
   {
     path: 'register',
+    canActivate: [guestOnlyGuard],
     loadComponent: () =>
       import('./features/auth/pages/register-page.component')
         .then(module => module.RegisterPageComponent)

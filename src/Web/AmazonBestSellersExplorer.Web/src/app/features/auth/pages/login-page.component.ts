@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { AuthApiService } from '../data/auth-api.service';
@@ -173,6 +173,7 @@ export class LoginPageComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly authState = inject(AuthStateService);
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   protected readonly isSubmitting = signal(false);
@@ -220,7 +221,9 @@ export class LoginPageComponent {
       .subscribe({
         next: response => {
           this.authState.setToken(response.accessToken);
-          void this.router.navigateByUrl('/favorites');
+          const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
+          const targetUrl = isSafeReturnUrl(returnUrl) ? returnUrl : '/favorites';
+          void this.router.navigateByUrl(targetUrl);
         },
         error: error => {
           this.errorMessages.set(extractApiErrors(error, 'Unable to log in.'));
@@ -249,4 +252,10 @@ function extractApiErrors(error: unknown, fallbackMessage: string): string[] {
   }
 
   return [fallbackMessage];
+}
+
+function isSafeReturnUrl(returnUrl: string | null): returnUrl is string {
+  return typeof returnUrl === 'string'
+    && returnUrl.startsWith('/')
+    && !returnUrl.startsWith('//');
 }

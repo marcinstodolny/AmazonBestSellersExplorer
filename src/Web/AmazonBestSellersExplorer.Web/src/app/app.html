@@ -7,9 +7,13 @@
 
     <nav class="shell-nav" aria-label="Primary">
       <a routerLink="/bestsellers" routerLinkActive="is-active">Bestsellers</a>
-      <a routerLink="/favorites" routerLinkActive="is-active">Favorites</a>
-      <a routerLink="/login" routerLinkActive="is-active">Login</a>
-      <a routerLink="/register" routerLinkActive="is-active">Register</a>
+      @if (isAuthenticated()) {
+        <a routerLink="/favorites" routerLinkActive="is-active">Favorites</a>
+        <button type="button" class="nav-action" (click)="logout()">Logout</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="is-active">Login</a>
+        <a routerLink="/register" routerLinkActive="is-active">Register</a>
+      }
     </nav>
 
     <div class="shell-status">

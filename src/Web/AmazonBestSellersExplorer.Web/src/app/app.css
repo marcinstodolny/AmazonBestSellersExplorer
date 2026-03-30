@@ -59,8 +59,21 @@
   transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
+.nav-action {
+  border: 0;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: transparent;
+  color: #24404f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
 .shell-nav a:hover,
-.shell-nav a.is-active {
+.shell-nav a.is-active,
+.nav-action:hover {
   background: rgba(24, 64, 179, 0.12);
   color: #15308d;
   transform: translateY(-1px);

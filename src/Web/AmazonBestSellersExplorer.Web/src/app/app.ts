@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStateService } from './core/auth/auth-state.service';
 import { apiConfig } from './core/config/api.config';
 
@@ -13,7 +13,13 @@ import { apiConfig } from './core/config/api.config';
 })
 export class AppComponent {
   private readonly authState = inject(AuthStateService);
+  private readonly router = inject(Router);
 
   protected readonly isAuthenticated = this.authState.isAuthenticated;
   protected readonly apiBaseUrl = computed(() => apiConfig.baseUrl);
+
+  protected logout(): void {
+    this.authState.clearToken();
+    void this.router.navigateByUrl('/bestsellers');
+  }
 }
