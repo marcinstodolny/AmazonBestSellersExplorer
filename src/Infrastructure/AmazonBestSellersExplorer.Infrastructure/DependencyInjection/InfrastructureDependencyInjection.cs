@@ -25,9 +25,6 @@ public static class InfrastructureDependencyInjection
                 static options => !string.IsNullOrWhiteSpace(options.BaseUrl),
                 "RapidAPI base URL is not configured.")
             .Validate(
-                static options => !string.IsNullOrWhiteSpace(options.ApiKey),
-                "RapidAPI API key is not configured.")
-            .Validate(
                 static options => !string.IsNullOrWhiteSpace(options.ApiHost),
                 "RapidAPI API host is not configured.")
             .ValidateOnStart();

@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
@@ -30,7 +31,7 @@ public sealed class RemoveFavoriteProductCommandHandler(
 
         if (!currentUserContext.IsAuthenticated || currentUserContext.UserId is null)
         {
-            return Result.Fail("User is not authenticated.");
+            return Result.Fail(ApplicationMessages.Favorites.UserNotAuthenticated);
         }
 
         var userId = currentUserContext.UserId.Value;
@@ -43,7 +44,7 @@ public sealed class RemoveFavoriteProductCommandHandler(
 
         if (favoriteProduct is null)
         {
-            return Result.Fail("Favorite product does not exist.");
+            return Result.Fail(ApplicationMessages.Favorites.FavoriteProductDoesNotExist);
         }
 
         favoriteProductRepository.Remove(favoriteProduct);
@@ -72,6 +73,6 @@ public sealed class RemoveFavoriteProductCommandValidator : AbstractValidator<Re
     {
         RuleFor(command => command.AmazonProductId)
             .NotEmpty()
-            .WithMessage("Amazon product id is required.");
+            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdRequired);
     }
 }

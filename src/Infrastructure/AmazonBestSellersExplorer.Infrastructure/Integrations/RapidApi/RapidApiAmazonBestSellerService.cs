@@ -56,7 +56,7 @@ public sealed class RapidApiAmazonBestSellerService(HttpClient httpClient) : IAm
         {
             normalizedPrice = string.Concat(priceParts);
         }
-        else if (normalizedPrice.Count(static character => character is '.' or ',') > 0)
+        else if (normalizedPrice.Any(static character => character is '.' or ','))
         {
             var lastSeparatorIndex = normalizedPrice.LastIndexOfAny(['.', ',']);
             normalizedPrice = normalizedPrice[..lastSeparatorIndex].Replace(".", string.Empty).Replace(",", string.Empty)

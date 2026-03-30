@@ -1,9 +1,10 @@
+using AmazonBestSellersExplorer.API.Common;
 using AmazonBestSellersExplorer.Application.Features.Favorites.AddFavoriteProduct;
 using AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
 using AmazonBestSellersExplorer.Application.Features.Favorites.GetFavoriteProducts;
 using AmazonBestSellersExplorer.Application.Features.Favorites.RemoveFavoriteProduct;
 using AmazonBestSellersExplorer.API.Contracts.Favorites;
-using AmazonBestSellersExplorer.Domain.Base;
+using AmazonBestSellersExplorer.API.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,9 @@ public sealed class FavoritesController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new GetFavoriteProductsQuery(), cancellationToken);
 
-        return ToOkOrBadRequest(result);
+        return result.IsFailed
+            ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.FavoritesRequestFailed)
+            : Ok(result.Value);
     }
 
     [HttpPost]
@@ -42,12 +45,9 @@ public sealed class FavoritesController(IMediator mediator) : ControllerBase
                 request.ImageUrl),
             cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return Ok();
-        }
-
-        return BadRequest(new { errors = result.Errors });
+        return result.IsFailed
+            ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.FavoritesRequestFailed)
+            : Ok();
     }
 
     [HttpDelete("{amazonProductId}")]
@@ -61,21 +61,8 @@ public sealed class FavoritesController(IMediator mediator) : ControllerBase
             new RemoveFavoriteProductCommand(amazonProductId),
             cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return NoContent();
-        }
-
-        return BadRequest(new { errors = result.Errors });
-    }
-
-    private IActionResult ToOkOrBadRequest(Result<IReadOnlyList<FavoriteProductDto>> result)
-    {
-        if (result.TryGetValue(out var favoriteProducts))
-        {
-            return Ok(favoriteProducts);
-        }
-
-        return BadRequest(new { errors = result.Errors });
+        return result.IsFailed
+            ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.FavoritesRequestFailed)
+            : NoContent();
     }
 }

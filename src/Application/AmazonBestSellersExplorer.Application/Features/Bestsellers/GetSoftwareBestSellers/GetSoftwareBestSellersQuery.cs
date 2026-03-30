@@ -1,4 +1,5 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
 using MediatR;
@@ -24,11 +25,11 @@ public sealed class GetSoftwareBestSellersQueryHandler(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return Result.Fail<IReadOnlyList<BestsellerProductDto>>("Operation Canceled.");
+            throw;
         }
         catch
         {
-            return Result.Fail<IReadOnlyList<BestsellerProductDto>>("Failed to retrieve software best sellers.");
+            return Result.Fail<IReadOnlyList<BestsellerProductDto>>(ApplicationMessages.Bestsellers.FailedToRetrieveSoftwareBestSellers);
         }
     }
 }

@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
 using FluentValidation;
@@ -31,13 +32,13 @@ public sealed class LoginUserCommandHandler(
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
         if (user is null)
         {
-            return Result.Fail<AuthResponse>("Invalid username or password.");
+            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
         var passwordIsValid = passwordHasher.VerifyPassword(command.Password, user.PasswordHash);
         if (!passwordIsValid)
         {
-            return Result.Fail<AuthResponse>("Invalid username or password.");
+            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
         var authResponse = jwtTokenService.GenerateToken(user);
@@ -52,10 +53,10 @@ public sealed class LoginUserCommandValidator : AbstractValidator<LoginUserComma
     {
         RuleFor(command => command.Username)
             .NotEmpty()
-            .WithMessage("Username is required.");
+            .WithMessage(ApplicationMessages.Auth.UsernameRequired);
 
         RuleFor(command => command.Password)
             .NotEmpty()
-            .WithMessage("Password is required.");
+            .WithMessage(ApplicationMessages.Auth.PasswordRequired);
     }
 }

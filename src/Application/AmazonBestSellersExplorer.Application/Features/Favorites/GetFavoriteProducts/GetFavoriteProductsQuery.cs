@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
 using MediatR;
@@ -20,7 +21,7 @@ public sealed class GetFavoriteProductsQueryHandler(
     {
         if (!currentUserContext.IsAuthenticated || currentUserContext.UserId is null)
         {
-            return Result.Fail<IReadOnlyList<FavoriteProductDto>>("User is not authenticated.");
+            return Result.Fail<IReadOnlyList<FavoriteProductDto>>(ApplicationMessages.Favorites.UserNotAuthenticated);
         }
 
         var favoriteProducts = await favoriteProductRepository.GetByUserIdAsync(
