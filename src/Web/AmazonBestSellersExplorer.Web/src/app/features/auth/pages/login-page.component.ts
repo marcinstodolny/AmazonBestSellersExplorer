@@ -220,7 +220,7 @@ export class LoginPageComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: response => {
-          this.authState.setToken(response.accessToken);
+          this.authState.setToken(response);
           const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
           const targetUrl = isSafeReturnUrl(returnUrl) ? returnUrl : '/favorites';
           void this.router.navigateByUrl(targetUrl);

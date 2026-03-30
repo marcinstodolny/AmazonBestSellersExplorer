@@ -235,7 +235,7 @@ export class RegisterPageComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: response => {
-          this.authState.setToken(response.accessToken);
+          this.authState.setToken(response);
           void this.router.navigateByUrl('/bestsellers');
         },
         error: error => {

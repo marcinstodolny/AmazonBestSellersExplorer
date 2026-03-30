@@ -8,26 +8,32 @@ const authSessionStorageKey = 'amazon-best-sellers-explorer.auth-session';
 })
 export class AuthStateService {
   private readonly sessionState = signal<AuthSession | null>(this.readSession());
+  private expirationTimerId: ReturnType<typeof setTimeout> | null = null;
 
   readonly session = this.sessionState.asReadonly();
-  readonly accessToken = computed(() => this.sessionState()?.accessToken ?? null);
+  readonly accessToken = computed(() => {
+    const session = this.sessionState();
+    return session !== null && this.isSessionValid(session)
+      ? session.accessToken
+      : null;
+  });
   readonly isAuthenticated = computed(() => this.accessToken() !== null);
 
-  setToken(accessToken: string): void {
-    const normalizedAccessToken = accessToken.trim();
+  setToken(session: AuthSession): void {
+    const normalizedSession = this.normalizeSession(session);
 
-    if (!normalizedAccessToken) {
+    if (normalizedSession === null) {
       this.clearToken();
       return;
     }
 
-    const session: AuthSession = { accessToken: normalizedAccessToken };
-
-    this.sessionState.set(session);
-    localStorage.setItem(authSessionStorageKey, JSON.stringify(session));
+    this.sessionState.set(normalizedSession);
+    localStorage.setItem(authSessionStorageKey, JSON.stringify(normalizedSession));
+    this.scheduleExpiration(normalizedSession);
   }
 
   clearToken(): void {
+    this.clearExpirationTimer();
     this.sessionState.set(null);
     localStorage.removeItem(authSessionStorageKey);
   }
@@ -41,13 +47,67 @@ export class AuthStateService {
 
     try {
       const parsedSession = JSON.parse(rawSession) as Partial<AuthSession>;
+      const normalizedSession = this.normalizeSession(parsedSession);
 
-      return typeof parsedSession.accessToken === 'string' && parsedSession.accessToken.trim()
-        ? { accessToken: parsedSession.accessToken }
-        : null;
+      if (normalizedSession === null) {
+        localStorage.removeItem(authSessionStorageKey);
+        return null;
+      }
+
+      this.scheduleExpiration(normalizedSession);
+      return normalizedSession;
     } catch {
       localStorage.removeItem(authSessionStorageKey);
       return null;
+    }
+  }
+
+  private normalizeSession(session: Partial<AuthSession>): AuthSession | null {
+    if (typeof session.accessToken !== 'string' || !session.accessToken.trim()) {
+      return null;
+    }
+
+    if (typeof session.expiresAtUtc !== 'string') {
+      return null;
+    }
+
+    const expirationTime = Date.parse(session.expiresAtUtc);
+
+    if (Number.isNaN(expirationTime) || expirationTime <= Date.now()) {
+      return null;
+    }
+
+    return {
+      accessToken: session.accessToken.trim(),
+      expiresAtUtc: session.expiresAtUtc
+    };
+  }
+
+  private isSessionValid(session: AuthSession): boolean {
+    const expirationTime = Date.parse(session.expiresAtUtc);
+
+    return !Number.isNaN(expirationTime) && expirationTime > Date.now();
+  }
+
+  private scheduleExpiration(session: AuthSession): void {
+    this.clearExpirationTimer();
+
+    const expirationDelay = Date.parse(session.expiresAtUtc) - Date.now();
+
+    if (expirationDelay <= 0) {
+      this.clearToken();
+      return;
+    }
+
+    this.expirationTimerId = window.setTimeout(() => {
+      this.clearToken();
+    }, expirationDelay);
+  }
+
+  private clearExpirationTimer(): void {
+    if (this.expirationTimerId !== null) {
+      clearTimeout(this.expirationTimerId);
+      this.expirationTimerId = null;
     }
   }
 }
