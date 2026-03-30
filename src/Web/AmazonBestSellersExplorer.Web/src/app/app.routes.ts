@@ -1,14 +1,30 @@
 import { Routes } from '@angular/router';
-import { BestsellersPageComponent } from './features/bestsellers/pages/bestsellers-page.component';
-import { LoginPageComponent } from './features/auth/pages/login-page.component';
-import { RegisterPageComponent } from './features/auth/pages/register-page.component';
-import { FavoritesPageComponent } from './features/favorites/pages/favorites-page.component';
 
 export const appRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'bestsellers' },
-  { path: 'bestsellers', component: BestsellersPageComponent },
-  { path: 'login', component: LoginPageComponent },
-  { path: 'register', component: RegisterPageComponent },
-  { path: 'favorites', component: FavoritesPageComponent },
+  {
+    path: 'bestsellers',
+    loadComponent: () =>
+      import('./features/bestsellers/pages/bestsellers-page.component')
+        .then(module => module.BestsellersPageComponent)
+  },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/pages/login-page.component')
+        .then(module => module.LoginPageComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/pages/register-page.component')
+        .then(module => module.RegisterPageComponent)
+  },
+  {
+    path: 'favorites',
+    loadComponent: () =>
+      import('./features/favorites/pages/favorites-page.component')
+        .then(module => module.FavoritesPageComponent)
+  },
   { path: '**', redirectTo: 'bestsellers' }
 ];
