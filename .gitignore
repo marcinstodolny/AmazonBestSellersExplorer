@@ -419,3 +419,24 @@ FodyWeavers.xsd
 
 Temp:
 zadanie.txt
+
+
+# Angular frontend
+src/Web/AmazonBestSellersExplorer.Web/dist/
+src/Web/AmazonBestSellersExplorer.Web/out-tsc/
+src/Web/AmazonBestSellersExplorer.Web/coverage/
+src/Web/AmazonBestSellersExplorer.Web/.angular/
+src/Web/AmazonBestSellersExplorer.Web/*.tsbuildinfo
+
+# Frontend editor files
+src/Web/AmazonBestSellersExplorer.Web/.vscode/
+
+# Frontend logs
+src/Web/AmazonBestSellersExplorer.Web/npm-debug.log*
+src/Web/AmazonBestSellersExplorer.Web/yarn-debug.log*
+src/Web/AmazonBestSellersExplorer.Web/yarn-error.log*
+src/Web/AmazonBestSellersExplorer.Web/pnpm-debug.log*
+
+src/Web/AmazonBestSellersExplorer.Web/tmp/
+src/Web/AmazonBestSellersExplorer.Web/e2e/test-output/
+src/Web/AmazonBestSellersExplorer.Web/.eslintcache
