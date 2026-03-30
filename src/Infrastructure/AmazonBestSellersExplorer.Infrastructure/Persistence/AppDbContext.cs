@@ -1,9 +1,11 @@
+using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AmazonBestSellersExplorer.Infrastructure.Persistence;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
+    : DbContext(options), IUnitOfWork
 {
     public DbSet<User> Users => Set<User>();
 
@@ -16,5 +18,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.HasPostgresExtension("citext");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return base.SaveChangesAsync(cancellationToken);
     }
 }
