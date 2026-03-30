@@ -12,6 +12,8 @@ export class FavoritesStateService {
   private readonly favoritesApi = inject(FavoritesApiService);
   private readonly authState = inject(AuthStateService);
   private loadRequestVersion = 0;
+  private stateCycleVersion = 0;
+  private activeSessionKey: string | null = null;
 
   private readonly favoritesState = signal<FavoriteProduct[]>([]);
   private readonly loadingState = signal(false);
@@ -29,9 +31,15 @@ export class FavoritesStateService {
 
   constructor() {
     effect(() => {
-      if (this.authState.session() === null) {
+      const sessionKey = this.getCurrentSessionKey();
+
+      if (sessionKey === null) {
         this.reset();
         return;
+      }
+
+      if (sessionKey !== this.activeSessionKey) {
+        this.startNewSession(sessionKey);
       }
 
       this.loadFavorites();
@@ -96,7 +104,10 @@ export class FavoritesStateService {
   }
 
   addFavorite(request: AddFavoriteProductRequest): void {
-    if (!this.authState.isAuthenticated() || this.isOperationInProgress(request.amazonProductId)) {
+    const sessionKey = this.getCurrentSessionKey();
+    const stateCycleVersion = this.stateCycleVersion;
+
+    if (sessionKey === null || this.isOperationInProgress(request.amazonProductId)) {
       return;
     }
 
@@ -104,9 +115,17 @@ export class FavoritesStateService {
     this.errorState.set(null);
 
     this.favoritesApi.addFavorite(request)
-      .pipe(finalize(() => this.setFavoriteOperation(request.amazonProductId, false)))
+      .pipe(finalize(() => {
+        if (this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+          this.setFavoriteOperation(request.amazonProductId, false);
+        }
+      }))
       .subscribe({
         next: () => {
+          if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+            return;
+          }
+
           const nextFavorites = this.favoritesState().filter(product => product.amazonProductId !== request.amazonProductId);
           nextFavorites.unshift({
             amazonProductId: request.amazonProductId,
@@ -121,13 +140,20 @@ export class FavoritesStateService {
           this.hasLoadedState.set(true);
         },
         error: () => {
+          if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+            return;
+          }
+
           this.errorState.set('Unable to add favorite product.');
         }
       });
   }
 
   removeFavorite(amazonProductId: string): void {
-    if (!this.authState.isAuthenticated() || this.isOperationInProgress(amazonProductId)) {
+    const sessionKey = this.getCurrentSessionKey();
+    const stateCycleVersion = this.stateCycleVersion;
+
+    if (sessionKey === null || this.isOperationInProgress(amazonProductId)) {
       return;
     }
 
@@ -135,14 +161,26 @@ export class FavoritesStateService {
     this.errorState.set(null);
 
     this.favoritesApi.removeFavorite(amazonProductId)
-      .pipe(finalize(() => this.setFavoriteOperation(amazonProductId, false)))
+      .pipe(finalize(() => {
+        if (this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+          this.setFavoriteOperation(amazonProductId, false);
+        }
+      }))
       .subscribe({
         next: () => {
+          if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+            return;
+          }
+
           this.favoritesState.update(products =>
             products.filter(product => product.amazonProductId !== amazonProductId));
           this.hasLoadedState.set(true);
         },
         error: () => {
+          if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
+            return;
+          }
+
           this.errorState.set('Unable to remove favorite product.');
         }
       });
@@ -157,7 +195,20 @@ export class FavoritesStateService {
   }
 
   private reset(): void {
+    this.activeSessionKey = null;
     this.loadRequestVersion++;
+    this.stateCycleVersion++;
+    this.favoritesState.set([]);
+    this.loadingState.set(false);
+    this.errorState.set(null);
+    this.operationIdsState.set(new Set<string>());
+    this.hasLoadedState.set(false);
+  }
+
+  private startNewSession(sessionKey: string): void {
+    this.activeSessionKey = sessionKey;
+    this.loadRequestVersion++;
+    this.stateCycleVersion++;
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
@@ -167,6 +218,11 @@ export class FavoritesStateService {
 
   private canApplyLoadResult(requestVersion: number, sessionKey: string): boolean {
     return requestVersion === this.loadRequestVersion
+      && this.getCurrentSessionKey() === sessionKey;
+  }
+
+  private canApplyMutationResult(stateCycleVersion: number, sessionKey: string): boolean {
+    return stateCycleVersion === this.stateCycleVersion
       && this.getCurrentSessionKey() === sessionKey;
   }
 
