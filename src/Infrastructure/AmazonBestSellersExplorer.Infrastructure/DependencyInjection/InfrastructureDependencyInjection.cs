@@ -17,7 +17,7 @@ public static class InfrastructureDependencyInjection
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options.UseSqlServer(connectionString));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFavoriteProductRepository, FavoriteProductRepository>();

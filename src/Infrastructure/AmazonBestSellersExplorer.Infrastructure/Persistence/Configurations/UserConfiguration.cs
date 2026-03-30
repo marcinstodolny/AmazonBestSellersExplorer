@@ -8,6 +8,8 @@ namespace AmazonBestSellersExplorer.Infrastructure.Persistence.Configurations;
 
 public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    private const string CaseInsensitiveCollation = "Latin1_General_100_CI_AS";
+
     private static readonly ValueConverter<Username, string> UsernameConverter = new(
         username => username.Value,
         value => Username.FromPersistence(value));
@@ -23,8 +25,9 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(user => user.Username)
             .HasConversion(UsernameConverter)
-            .HasColumnType("citext")
             .HasMaxLength(Username.MaxLength)
+            .IsUnicode(false)
+            .UseCollation(CaseInsensitiveCollation)
             .IsRequired();
 
         builder.HasIndex(user => user.Username)
