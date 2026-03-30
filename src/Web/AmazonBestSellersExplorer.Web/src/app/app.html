@@ -1,0 +1,36 @@
+<div class="app-shell">
+  <header class="shell-header">
+    <div class="brand">
+      <span class="brand-kicker">Angular Frontend</span>
+      <a routerLink="/bestsellers" class="brand-title">AmazonBestSellersExplorer</a>
+    </div>
+
+    <nav class="shell-nav" aria-label="Primary">
+      <a routerLink="/bestsellers" routerLinkActive="is-active">Bestsellers</a>
+      <a routerLink="/favorites" routerLinkActive="is-active">Favorites</a>
+      <a routerLink="/login" routerLinkActive="is-active">Login</a>
+      <a routerLink="/register" routerLinkActive="is-active">Register</a>
+    </nav>
+
+    <div class="shell-status">
+      <span class="status-chip" [class.is-authenticated]="isAuthenticated()">
+        {{ isAuthenticated() ? 'Authenticated' : 'Anonymous' }}
+      </span>
+    </div>
+  </header>
+
+  <main class="shell-main">
+    <section class="shell-intro">
+      <p class="intro-kicker">Frontend skeleton</p>
+      <h1>Standalone Angular shell gotowy pod auth, bestsellers i favorites.</h1>
+      <p class="intro-copy">
+        Routing, auth state na Signals, klient HTTP i interceptor JWT są już spięte.
+        Bazowy adres API: <code>{{ apiBaseUrl() }}</code>
+      </p>
+    </section>
+
+    <section class="shell-content">
+      <router-outlet />
+    </section>
+  </main>
+</div>

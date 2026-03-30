@@ -12,4 +12,10 @@
   <Folder Name="/src/Infrastructure/">
     <Project Path="src/Infrastructure/AmazonBestSellersExplorer.Infrastructure/AmazonBestSellersExplorer.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Web/">
+    <Project Path="src/Web/AmazonBestSellersExplorer.Web/AmazonBestSellersExplorer.Web.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
 </Solution>
