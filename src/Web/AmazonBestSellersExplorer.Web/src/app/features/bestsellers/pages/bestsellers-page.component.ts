@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { DataViewModule } from 'primeng/dataview';
+import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { BestsellersApiService } from '../data/bestsellers-api.service';
 import { BestsellerProduct } from '../../../shared/models/bestseller-product.model';
+import { FavoritesApiService } from '../../favorites/data/favorites-api.service';
 
 type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
 
@@ -43,7 +45,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
           <ng-template #list let-items>
             <div class="products-grid">
               @for (product of items; track product.amazonProductId) {
-                <article class="product-card">
+                <article class="product-card" [class.is-favorite]="isFavorite(product.amazonProductId)">
                   <div class="product-media">
                     @if (product.imageUrl) {
                       <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
@@ -75,6 +77,24 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                     >
                       Zobacz w Amazon
                     </a>
+
+                    @if (isAuthenticated()) {
+                      <button
+                        type="button"
+                        class="favorite-button"
+                        [class.is-active]="isFavorite(product.amazonProductId)"
+                        [disabled]="isFavoriteOperationInProgress(product.amazonProductId)"
+                        (click)="toggleFavorite(product)"
+                      >
+                        @if (isFavoriteOperationInProgress(product.amazonProductId)) {
+                          Working...
+                        } @else if (isFavorite(product.amazonProductId)) {
+                          Usuń z ulubionych
+                        } @else {
+                          Dodaj do ulubionych
+                        }
+                      </button>
+                    }
                   </div>
                 </article>
               }
@@ -173,6 +193,11 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       box-shadow: 0 12px 34px rgba(19, 32, 40, 0.08);
     }
 
+    .product-card.is-favorite {
+      border-color: rgba(24, 64, 179, 0.28);
+      box-shadow: 0 16px 38px rgba(24, 64, 179, 0.12);
+    }
+
     .product-media {
       background:
         linear-gradient(180deg, rgba(24, 64, 179, 0.08), rgba(19, 94, 70, 0.12)),
@@ -254,22 +279,64 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       transform: translateY(-1px);
       opacity: 0.92;
     }
+
+    .favorite-button {
+      width: fit-content;
+      border: 0;
+      border-radius: 999px;
+      padding: 0.8rem 1rem;
+      background: rgba(24, 64, 179, 0.12);
+      color: #15308d;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease;
+    }
+
+    .favorite-button.is-active {
+      background: rgba(24, 64, 179, 0.18);
+      color: #102a78;
+    }
+
+    .favorite-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      opacity: 0.92;
+    }
+
+    .favorite-button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BestsellersPageComponent {
   private readonly bestsellersApi = inject(BestsellersApiService);
+  private readonly favoritesApi = inject(FavoritesApiService);
+  private readonly authState = inject(AuthStateService);
 
   protected readonly state = signal<BestsellersViewState>('loading');
   protected readonly products = signal<BestsellerProduct[]>([]);
   protected readonly errorMessage = signal('Unable to load bestseller list.');
+  protected readonly favoriteIds = signal<Set<string>>(new Set<string>());
+  protected readonly favoriteOperationIds = signal<Set<string>>(new Set<string>());
 
   protected readonly isLoading = computed(() => this.state() === 'loading');
   protected readonly hasError = computed(() => this.state() === 'error');
   protected readonly isEmpty = computed(() => this.state() === 'empty');
+  protected readonly isAuthenticated = this.authState.isAuthenticated;
 
   constructor() {
     this.load();
+
+    effect(() => {
+      if (!this.isAuthenticated()) {
+        this.favoriteIds.set(new Set<string>());
+        this.favoriteOperationIds.set(new Set<string>());
+        return;
+      }
+
+      this.loadFavoriteIds();
+    });
   }
 
   protected reload(): void {
@@ -286,6 +353,27 @@ export class BestsellersPageComponent {
     return rating === null
       ? 'No rating'
       : `${rating.toFixed(1)} / 5`;
+  }
+
+  protected isFavorite(amazonProductId: string): boolean {
+    return this.favoriteIds().has(amazonProductId);
+  }
+
+  protected isFavoriteOperationInProgress(amazonProductId: string): boolean {
+    return this.favoriteOperationIds().has(amazonProductId);
+  }
+
+  protected toggleFavorite(product: BestsellerProduct): void {
+    if (this.isFavoriteOperationInProgress(product.amazonProductId)) {
+      return;
+    }
+
+    if (this.isFavorite(product.amazonProductId)) {
+      this.removeFavorite(product.amazonProductId);
+      return;
+    }
+
+    this.addFavorite(product);
   }
 
   private load(): void {
@@ -308,5 +396,64 @@ export class BestsellersPageComponent {
           this.errorMessage.set('Backend did not return bestseller data.');
         }
       });
+  }
+
+  private loadFavoriteIds(): void {
+    this.favoritesApi.getFavorites()
+      .subscribe({
+        next: favorites => {
+          this.favoriteIds.set(new Set(favorites.map(product => product.amazonProductId)));
+        },
+        error: () => {
+          this.favoriteIds.set(new Set<string>());
+        }
+      });
+  }
+
+  private addFavorite(product: BestsellerProduct): void {
+    this.setFavoriteOperation(product.amazonProductId, true);
+
+    this.favoritesApi.addFavorite({
+      amazonProductId: product.amazonProductId,
+      title: product.title,
+      price: product.price,
+      rating: product.rating,
+      productUrl: product.productUrl,
+      imageUrl: product.imageUrl
+    })
+      .pipe(finalize(() => this.setFavoriteOperation(product.amazonProductId, false)))
+      .subscribe({
+        next: () => {
+          const nextFavoriteIds = new Set(this.favoriteIds());
+          nextFavoriteIds.add(product.amazonProductId);
+          this.favoriteIds.set(nextFavoriteIds);
+        }
+      });
+  }
+
+  private removeFavorite(amazonProductId: string): void {
+    this.setFavoriteOperation(amazonProductId, true);
+
+    this.favoritesApi.removeFavorite(amazonProductId)
+      .pipe(finalize(() => this.setFavoriteOperation(amazonProductId, false)))
+      .subscribe({
+        next: () => {
+          const nextFavoriteIds = new Set(this.favoriteIds());
+          nextFavoriteIds.delete(amazonProductId);
+          this.favoriteIds.set(nextFavoriteIds);
+        }
+      });
+  }
+
+  private setFavoriteOperation(amazonProductId: string, inProgress: boolean): void {
+    const nextOperationIds = new Set(this.favoriteOperationIds());
+
+    if (inProgress) {
+      nextOperationIds.add(amazonProductId);
+    } else {
+      nextOperationIds.delete(amazonProductId);
+    }
+
+    this.favoriteOperationIds.set(nextOperationIds);
   }
 }
