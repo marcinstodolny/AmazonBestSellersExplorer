@@ -11,6 +11,7 @@ import { FavoritesApiService } from './favorites-api.service';
 export class FavoritesStateService {
   private readonly favoritesApi = inject(FavoritesApiService);
   private readonly authState = inject(AuthStateService);
+  private loadRequestVersion = 0;
 
   private readonly favoritesState = signal<FavoriteProduct[]>([]);
   private readonly loadingState = signal(false);
@@ -28,7 +29,7 @@ export class FavoritesStateService {
 
   constructor() {
     effect(() => {
-      if (!this.authState.isAuthenticated()) {
+      if (this.authState.session() === null) {
         this.reset();
         return;
       }
@@ -38,7 +39,7 @@ export class FavoritesStateService {
   }
 
   ensureLoaded(): void {
-    if (!this.authState.isAuthenticated()) {
+    if (this.authState.session() === null) {
       this.reset();
       return;
     }
@@ -55,22 +56,38 @@ export class FavoritesStateService {
   }
 
   loadFavorites(): void {
-    if (!this.authState.isAuthenticated()) {
+    const sessionKey = this.getCurrentSessionKey();
+
+    if (sessionKey === null) {
       this.reset();
       return;
     }
+
+    const requestVersion = ++this.loadRequestVersion;
 
     this.loadingState.set(true);
     this.errorState.set(null);
 
     this.favoritesApi.getFavorites()
-      .pipe(finalize(() => this.loadingState.set(false)))
+      .pipe(finalize(() => {
+        if (this.canApplyLoadResult(requestVersion, sessionKey)) {
+          this.loadingState.set(false);
+        }
+      }))
       .subscribe({
         next: favorites => {
+          if (!this.canApplyLoadResult(requestVersion, sessionKey)) {
+            return;
+          }
+
           this.favoritesState.set(favorites);
           this.hasLoadedState.set(true);
         },
         error: () => {
+          if (!this.canApplyLoadResult(requestVersion, sessionKey)) {
+            return;
+          }
+
           this.favoritesState.set([]);
           this.errorState.set('Backend did not return favorite products.');
           this.hasLoadedState.set(true);
@@ -140,11 +157,25 @@ export class FavoritesStateService {
   }
 
   private reset(): void {
+    this.loadRequestVersion++;
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
     this.operationIdsState.set(new Set<string>());
     this.hasLoadedState.set(false);
+  }
+
+  private canApplyLoadResult(requestVersion: number, sessionKey: string): boolean {
+    return requestVersion === this.loadRequestVersion
+      && this.getCurrentSessionKey() === sessionKey;
+  }
+
+  private getCurrentSessionKey(): string | null {
+    const session = this.authState.session();
+
+    return session === null
+      ? null
+      : `${session.accessToken}:${session.expiresAtUtc}`;
   }
 
   private setFavoriteOperation(amazonProductId: string, inProgress: boolean): void {
