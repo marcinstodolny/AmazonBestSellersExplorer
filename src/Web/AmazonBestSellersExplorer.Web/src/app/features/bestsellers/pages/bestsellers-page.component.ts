@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { DataViewModule } from 'primeng/dataview';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { BestsellersApiService } from '../data/bestsellers-api.service';
 import { BestsellerProduct } from '../../../shared/models/bestseller-product.model';
-import { FavoritesApiService } from '../../favorites/data/favorites-api.service';
+import { FavoritesStateService } from '../../favorites/data/favorites-state.service';
 
 type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
 
@@ -311,14 +311,12 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
 })
 export class BestsellersPageComponent {
   private readonly bestsellersApi = inject(BestsellersApiService);
-  private readonly favoritesApi = inject(FavoritesApiService);
+  private readonly favoritesState = inject(FavoritesStateService);
   private readonly authState = inject(AuthStateService);
 
   protected readonly state = signal<BestsellersViewState>('loading');
   protected readonly products = signal<BestsellerProduct[]>([]);
   protected readonly errorMessage = signal('Unable to load bestseller list.');
-  protected readonly favoriteIds = signal<Set<string>>(new Set<string>());
-  protected readonly favoriteOperationIds = signal<Set<string>>(new Set<string>());
 
   protected readonly isLoading = computed(() => this.state() === 'loading');
   protected readonly hasError = computed(() => this.state() === 'error');
@@ -327,16 +325,6 @@ export class BestsellersPageComponent {
 
   constructor() {
     this.load();
-
-    effect(() => {
-      if (!this.isAuthenticated()) {
-        this.favoriteIds.set(new Set<string>());
-        this.favoriteOperationIds.set(new Set<string>());
-        return;
-      }
-
-      this.loadFavoriteIds();
-    });
   }
 
   protected reload(): void {
@@ -356,11 +344,11 @@ export class BestsellersPageComponent {
   }
 
   protected isFavorite(amazonProductId: string): boolean {
-    return this.favoriteIds().has(amazonProductId);
+    return this.favoritesState.isFavorite(amazonProductId);
   }
 
   protected isFavoriteOperationInProgress(amazonProductId: string): boolean {
-    return this.favoriteOperationIds().has(amazonProductId);
+    return this.favoritesState.isOperationInProgress(amazonProductId);
   }
 
   protected toggleFavorite(product: BestsellerProduct): void {
@@ -398,62 +386,18 @@ export class BestsellersPageComponent {
       });
   }
 
-  private loadFavoriteIds(): void {
-    this.favoritesApi.getFavorites()
-      .subscribe({
-        next: favorites => {
-          this.favoriteIds.set(new Set(favorites.map(product => product.amazonProductId)));
-        },
-        error: () => {
-          this.favoriteIds.set(new Set<string>());
-        }
-      });
-  }
-
   private addFavorite(product: BestsellerProduct): void {
-    this.setFavoriteOperation(product.amazonProductId, true);
-
-    this.favoritesApi.addFavorite({
+    this.favoritesState.addFavorite({
       amazonProductId: product.amazonProductId,
       title: product.title,
       price: product.price,
       rating: product.rating,
       productUrl: product.productUrl,
       imageUrl: product.imageUrl
-    })
-      .pipe(finalize(() => this.setFavoriteOperation(product.amazonProductId, false)))
-      .subscribe({
-        next: () => {
-          const nextFavoriteIds = new Set(this.favoriteIds());
-          nextFavoriteIds.add(product.amazonProductId);
-          this.favoriteIds.set(nextFavoriteIds);
-        }
-      });
+    });
   }
 
   private removeFavorite(amazonProductId: string): void {
-    this.setFavoriteOperation(amazonProductId, true);
-
-    this.favoritesApi.removeFavorite(amazonProductId)
-      .pipe(finalize(() => this.setFavoriteOperation(amazonProductId, false)))
-      .subscribe({
-        next: () => {
-          const nextFavoriteIds = new Set(this.favoriteIds());
-          nextFavoriteIds.delete(amazonProductId);
-          this.favoriteIds.set(nextFavoriteIds);
-        }
-      });
-  }
-
-  private setFavoriteOperation(amazonProductId: string, inProgress: boolean): void {
-    const nextOperationIds = new Set(this.favoriteOperationIds());
-
-    if (inProgress) {
-      nextOperationIds.add(amazonProductId);
-    } else {
-      nextOperationIds.delete(amazonProductId);
-    }
-
-    this.favoriteOperationIds.set(nextOperationIds);
+    this.favoritesState.removeFavorite(amazonProductId);
   }
 }

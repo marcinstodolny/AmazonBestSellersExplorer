@@ -1,10 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { finalize } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DataViewModule } from 'primeng/dataview';
-import { FavoriteProduct } from '../models/favorite-product.model';
-import { FavoritesApiService } from '../data/favorites-api.service';
-
-type FavoritesViewState = 'loading' | 'error' | 'empty' | 'success';
+import { FavoritesStateService } from '../data/favorites-state.service';
 
 @Component({
   selector: 'app-favorites-page',
@@ -81,9 +77,9 @@ type FavoritesViewState = 'loading' | 'error' | 'empty' | 'success';
                         type="button"
                         class="remove-button"
                         (click)="remove(product.amazonProductId)"
-                        [disabled]="removingProductId() === product.amazonProductId"
+                        [disabled]="favoritesState.isOperationInProgress(product.amazonProductId)"
                       >
-                        {{ removingProductId() === product.amazonProductId ? 'Removing...' : 'Usuń z ulubionych' }}
+                        {{ favoritesState.isOperationInProgress(product.amazonProductId) ? 'Removing...' : 'Usuń z ulubionych' }}
                       </button>
                     </div>
                   </div>
@@ -284,42 +280,29 @@ type FavoritesViewState = 'loading' | 'error' | 'empty' | 'success';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FavoritesPageComponent {
-  private readonly favoritesApi = inject(FavoritesApiService);
+  protected readonly favoritesState = inject(FavoritesStateService);
 
-  protected readonly state = signal<FavoritesViewState>('loading');
-  protected readonly products = signal<FavoriteProduct[]>([]);
-  protected readonly errorMessage = signal('Unable to load favorites.');
-  protected readonly removingProductId = signal<string | null>(null);
-
-  protected readonly isLoading = computed(() => this.state() === 'loading');
-  protected readonly hasError = computed(() => this.state() === 'error');
-  protected readonly isEmpty = computed(() => this.state() === 'empty');
-  protected readonly isRemoving = computed(() => this.removingProductId() !== null);
+  protected readonly products = this.favoritesState.favorites;
+  protected readonly errorMessage = computed(() => this.favoritesState.error() ?? 'Unable to load favorites.');
+  protected readonly isLoading = this.favoritesState.loading;
+  protected readonly hasError = computed(() => this.favoritesState.error() !== null);
+  protected readonly isEmpty = computed(() =>
+    this.favoritesState.hasLoaded()
+    && !this.isLoading()
+    && !this.hasError()
+    && this.products().length === 0);
+  protected readonly isRemoving = this.favoritesState.hasPendingOperations;
 
   constructor() {
-    this.load();
+    this.favoritesState.ensureLoaded();
   }
 
   protected reload(): void {
-    this.load();
+    this.favoritesState.loadFavorites();
   }
 
   protected remove(amazonProductId: string): void {
-    this.removingProductId.set(amazonProductId);
-
-    this.favoritesApi.removeFavorite(amazonProductId)
-      .pipe(finalize(() => this.removingProductId.set(null)))
-      .subscribe({
-        next: () => {
-          const nextProducts = this.products().filter(product => product.amazonProductId !== amazonProductId);
-          this.products.set(nextProducts);
-          this.state.set(nextProducts.length > 0 ? 'success' : 'empty');
-        },
-        error: () => {
-          this.errorMessage.set('Unable to remove favorite product.');
-          this.state.set('error');
-        }
-      });
+    this.favoritesState.removeFavorite(amazonProductId);
   }
 
   protected formatPrice(price: number | null): string {
@@ -332,27 +315,5 @@ export class FavoritesPageComponent {
     return rating === null
       ? 'No rating'
       : `${rating.toFixed(1)} / 5`;
-  }
-
-  private load(): void {
-    this.state.set('loading');
-    this.errorMessage.set('Unable to load favorites.');
-
-    this.favoritesApi.getFavorites()
-      .pipe(finalize(() => {
-        if (this.state() === 'loading') {
-          this.state.set(this.products().length > 0 ? 'success' : 'empty');
-        }
-      }))
-      .subscribe({
-        next: products => {
-          this.products.set(products);
-        },
-        error: () => {
-          this.products.set([]);
-          this.state.set('error');
-          this.errorMessage.set('Backend did not return favorite products.');
-        }
-      });
   }
 }
