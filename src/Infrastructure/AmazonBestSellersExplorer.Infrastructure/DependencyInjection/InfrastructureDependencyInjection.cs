@@ -8,6 +8,7 @@ using AmazonBestSellersExplorer.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AmazonBestSellersExplorer.Infrastructure.DependencyInjection;
 
@@ -18,7 +19,18 @@ public static class InfrastructureDependencyInjection
         IConfiguration configuration)
     {
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
-        services.Configure<RapidApiOptions>(configuration.GetSection(RapidApiOptions.SectionName));
+        services.AddOptions<RapidApiOptions>()
+            .Bind(configuration.GetSection(RapidApiOptions.SectionName))
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.BaseUrl),
+                "RapidAPI base URL is not configured.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ApiKey),
+                "RapidAPI API key is not configured.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ApiHost),
+                "RapidAPI API host is not configured.")
+            .ValidateOnStart();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
@@ -28,23 +40,8 @@ public static class InfrastructureDependencyInjection
         services.AddHttpClient<IAmazonBestSellerService, RapidApiAmazonBestSellerService>((serviceProvider, client) =>
         {
             var rapidApiOptions = serviceProvider
-                .GetRequiredService<Microsoft.Extensions.Options.IOptions<RapidApiOptions>>()
+                .GetRequiredService<IOptions<RapidApiOptions>>()
                 .Value;
-
-            if (string.IsNullOrWhiteSpace(rapidApiOptions.BaseUrl))
-            {
-                throw new InvalidOperationException("RapidAPI base URL is not configured.");
-            }
-
-            if (string.IsNullOrWhiteSpace(rapidApiOptions.ApiKey))
-            {
-                throw new InvalidOperationException("RapidAPI API key is not configured.");
-            }
-
-            if (string.IsNullOrWhiteSpace(rapidApiOptions.ApiHost))
-            {
-                throw new InvalidOperationException("RapidAPI API host is not configured.");
-            }
 
             client.BaseAddress = new Uri(rapidApiOptions.BaseUrl);
             client.DefaultRequestHeaders.Add("x-rapidapi-key", rapidApiOptions.ApiKey);

@@ -22,6 +22,10 @@ public sealed class GetSoftwareBestSellersQueryHandler(
 
             return Result.Success(bestSellers);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Result.Fail<IReadOnlyList<BestsellerProductDto>>("Operation Canceled.");
+        }
         catch
         {
             return Result.Fail<IReadOnlyList<BestsellerProductDto>>("Failed to retrieve software best sellers.");

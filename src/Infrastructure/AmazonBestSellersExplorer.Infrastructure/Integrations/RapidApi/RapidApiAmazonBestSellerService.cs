@@ -49,16 +49,19 @@ public sealed class RapidApiAmazonBestSellerService(HttpClient httpClient) : IAm
             return null;
         }
 
-        if (normalizedPrice.Count(static character => character is '.' or ',') > 1)
+        var priceParts = normalizedPrice.Split(['.', ',']);
+
+        if (priceParts.Length > 1
+            && priceParts.Skip(1).All(static part => part.Length == 3))
+        {
+            normalizedPrice = string.Concat(priceParts);
+        }
+        else if (normalizedPrice.Count(static character => character is '.' or ',') > 0)
         {
             var lastSeparatorIndex = normalizedPrice.LastIndexOfAny(['.', ',']);
             normalizedPrice = normalizedPrice[..lastSeparatorIndex].Replace(".", string.Empty).Replace(",", string.Empty)
                 + "."
                 + normalizedPrice[(lastSeparatorIndex + 1)..];
-        }
-        else
-        {
-            normalizedPrice = normalizedPrice.Replace(',', '.');
         }
 
         return decimal.TryParse(
