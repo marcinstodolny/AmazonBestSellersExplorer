@@ -1,4 +1,4 @@
-using AmazonBestSellersExplorer.Application.Features.Auth.Services;
+using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 

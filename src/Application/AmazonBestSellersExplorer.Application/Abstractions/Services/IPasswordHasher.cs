@@ -1,4 +1,4 @@
-namespace AmazonBestSellersExplorer.Application.Features.Auth.Services;
+namespace AmazonBestSellersExplorer.Application.Abstractions.Services;
 
 public interface IPasswordHasher
 {

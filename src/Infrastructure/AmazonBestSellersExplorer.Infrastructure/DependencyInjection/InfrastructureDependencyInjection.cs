@@ -1,6 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
+using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
-using AmazonBestSellersExplorer.Application.Features.Auth.Services;
 using AmazonBestSellersExplorer.Infrastructure.Authentication;
 using AmazonBestSellersExplorer.Infrastructure.Persistence;
 using AmazonBestSellersExplorer.Infrastructure.Persistence.Repositories;

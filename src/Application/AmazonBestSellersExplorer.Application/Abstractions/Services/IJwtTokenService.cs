@@ -1,7 +1,7 @@
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Entities;
 
-namespace AmazonBestSellersExplorer.Application.Features.Auth.Services;
+namespace AmazonBestSellersExplorer.Application.Abstractions.Services;
 
 public interface IJwtTokenService
 {
