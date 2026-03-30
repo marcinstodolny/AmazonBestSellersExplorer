@@ -23,6 +23,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(user => user.Username)
             .HasConversion(UsernameConverter)
+            .HasColumnType("citext")
             .HasMaxLength(Username.MaxLength)
             .IsRequired();
 

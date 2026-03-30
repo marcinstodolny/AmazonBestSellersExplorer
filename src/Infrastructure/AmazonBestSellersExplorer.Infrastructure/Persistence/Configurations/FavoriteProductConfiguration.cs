@@ -19,6 +19,7 @@ public sealed class FavoriteProductConfiguration : IEntityTypeConfiguration<Favo
             .IsRequired();
 
         builder.Property(favoriteProduct => favoriteProduct.AmazonProductId)
+            .HasColumnType("citext")
             .IsRequired();
 
         builder.Property(favoriteProduct => favoriteProduct.Title)
