@@ -1,7 +1,9 @@
+using AmazonBestSellersExplorer.API.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 using AmazonBestSellersExplorer.Application.Features.Auth.RegisterUser;
-using AmazonBestSellersExplorer.Domain.Base;
+using AmazonBestSellersExplorer.Application.Common;
+using AmazonBestSellersExplorer.API.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +14,6 @@ namespace AmazonBestSellersExplorer.API.Controllers;
 [Route("api/[controller]")]
 public sealed class AuthController(IMediator mediator) : ControllerBase
 {
-    private const string InvalidCredentialsError = "Invalid username or password.";
-
     [AllowAnonymous]
     [HttpPost("register")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
@@ -26,7 +26,7 @@ public sealed class AuthController(IMediator mediator) : ControllerBase
             new RegisterUserCommand(request.Username, request.Password),
             cancellationToken);
 
-        return ToRegisterActionResult(result);
+        return result.IsFailed ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed) : Ok(result.Value);
     }
 
     [AllowAnonymous]
@@ -42,32 +42,19 @@ public sealed class AuthController(IMediator mediator) : ControllerBase
             new LoginUserCommand(request.Username, request.Password),
             cancellationToken);
 
-        return ToLoginActionResult(result);
-    }
-
-    private IActionResult ToRegisterActionResult(Result<AuthResponse> result)
-    {
-        if (result.TryGetValue(out var response))
-        {
-            return Ok(response);
-        }
-
-        return BadRequest(new { errors = result.Errors });
-    }
-
-    private IActionResult ToLoginActionResult(Result<AuthResponse> result)
-    {
         if (result.TryGetValue(out var response))
         {
             return Ok(response);
         }
 
         if (result.Errors.Count == 1
-            && string.Equals(result.FirstError, InvalidCredentialsError, StringComparison.Ordinal))
+            && string.Equals(result.FirstError, ApplicationMessages.Auth.InvalidCredentials, StringComparison.Ordinal))
         {
-            return Unauthorized(new { errors = result.Errors });
+            return this.ToProblem(result, StatusCodes.Status401Unauthorized, ApiProblemTitles.AuthenticationFailed);
         }
 
-        return BadRequest(new { errors = result.Errors });
+        return result.IsFailed
+            ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed)
+            : Ok(result.Value);
     }
 }

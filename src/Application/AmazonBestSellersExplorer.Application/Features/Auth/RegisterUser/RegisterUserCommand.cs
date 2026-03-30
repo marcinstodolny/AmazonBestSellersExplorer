@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
@@ -36,7 +37,7 @@ public sealed class RegisterUserCommandHandler(
         var usernameExists = await userRepository.ExistsByUsernameAsync(command.Username, cancellationToken);
         if (usernameExists)
         {
-            return Result.Fail<AuthResponse>("Username is already taken.");
+            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.UsernameAlreadyTaken);
         }
 
         var passwordHash = passwordHasher.HashPassword(command.Password);
@@ -78,24 +79,24 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
 
         RuleFor(command => command.Password)
             .NotEmpty()
-            .WithMessage("Password is required.")
+            .WithMessage(ApplicationMessages.Auth.PasswordRequired)
             .DependentRules(() =>
             {
                 RuleFor(command => command.Password)
                     .MinimumLength(MinimumPasswordLength)
-                    .WithMessage($"Password must be at least {MinimumPasswordLength} characters long.");
+                    .WithMessage(ApplicationMessages.Auth.PasswordMinimumLength(MinimumPasswordLength));
 
                 RuleFor(command => command.Password)
                     .Must(static password => password.Any(char.IsUpper))
-                    .WithMessage("Password must contain at least one uppercase letter.");
+                    .WithMessage(ApplicationMessages.Auth.PasswordUppercaseRequired);
 
                 RuleFor(command => command.Password)
                     .Must(static password => password.Any(char.IsLower))
-                    .WithMessage("Password must contain at least one lowercase letter.");
+                    .WithMessage(ApplicationMessages.Auth.PasswordLowercaseRequired);
 
                 RuleFor(command => command.Password)
                     .Must(static password => password.Any(char.IsDigit))
-                    .WithMessage("Password must contain at least one digit.");
+                    .WithMessage(ApplicationMessages.Auth.PasswordDigitRequired);
             });
     }
 }

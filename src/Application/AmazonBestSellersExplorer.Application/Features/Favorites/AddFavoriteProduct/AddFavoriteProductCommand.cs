@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
@@ -35,7 +36,7 @@ public sealed class AddFavoriteProductCommandHandler(
 
         if (!currentUserContext.IsAuthenticated || currentUserContext.UserId is null)
         {
-            return Result.Fail("User is not authenticated.");
+            return Result.Fail(ApplicationMessages.Favorites.UserNotAuthenticated);
         }
 
         var userId = currentUserContext.UserId.Value;
@@ -53,7 +54,7 @@ public sealed class AddFavoriteProductCommandHandler(
 
         if (existingFavoriteProduct is not null)
         {
-            return Result.Fail("Favorite product already exists.");
+            return Result.Fail(ApplicationMessages.Favorites.FavoriteProductAlreadyExists);
         }
 
         var favoriteProductResult = FavoriteProduct.Create(
@@ -96,14 +97,14 @@ public sealed class AddFavoriteProductCommandValidator : AbstractValidator<AddFa
     {
         RuleFor(command => command.AmazonProductId)
             .NotEmpty()
-            .WithMessage("Amazon product id is required.");
+            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdRequired);
 
         RuleFor(command => command.Title)
             .NotEmpty()
-            .WithMessage("Title is required.");
+            .WithMessage(ApplicationMessages.Favorites.TitleRequired);
 
         RuleFor(command => command.ProductUrl)
             .NotEmpty()
-            .WithMessage("Product URL is required.");
+            .WithMessage(ApplicationMessages.Favorites.ProductUrlRequired);
     }
 }
