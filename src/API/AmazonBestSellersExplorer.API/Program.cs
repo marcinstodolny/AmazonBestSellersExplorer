@@ -1,6 +1,8 @@
 using System.Text;
+using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
+using AmazonBestSellersExplorer.API.Authentication;
 using AmazonBestSellersExplorer.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +25,8 @@ namespace AmazonBestSellersExplorer.API
             builder.Services.AddSwaggerGen();
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ICurrentUserContext, HttpContextCurrentUserContext>();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
