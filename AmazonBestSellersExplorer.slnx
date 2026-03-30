@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/API/">
+    <Project Path="src/API/AmazonBestSellersExplorer.API/AmazonBestSellersExplorer.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Application/">
+    <Project Path="src/Application/AmazonBestSellersExplorer.Application/AmazonBestSellersExplorer.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Domains/">
+    <Project Path="src/Domains/AmazonBestSellersExplorer.Domain/AmazonBestSellersExplorer.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/AmazonBestSellersExplorer.Infrastructure/AmazonBestSellersExplorer.Infrastructure.csproj" />
+  </Folder>
+</Solution>
