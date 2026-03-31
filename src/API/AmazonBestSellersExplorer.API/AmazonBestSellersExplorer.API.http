@@ -4,3 +4,21 @@ GET {{AmazonBestSellersExplorer.API_HostAddress}}/api/bestsellers
 Accept: application/json
 
 ###
+
+POST {{AmazonBestSellersExplorer.API_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Test123!"
+}
+
+###
+
+POST {{AmazonBestSellersExplorer.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Test123!"
+}
