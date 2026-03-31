@@ -16,29 +16,29 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     <section class="page-shell">
       <header class="page-header">
         <div>
-          <span class="page-kicker">Public API</span>
+          <span class="page-kicker">Public catalog</span>
           <h1>Amazon Software Bestsellers</h1>
         </div>
 
         <button type="button" class="refresh-button" (click)="reload()" [disabled]="isLoading()">
-          {{ isLoading() ? 'Loading...' : 'Refresh' }}
+          {{ isLoading() ? 'Refreshing...' : 'Refresh list' }}
         </button>
       </header>
 
       @if (isLoading()) {
         <section class="state-card">
-          <h2>Loading bestseller list</h2>
-          <p>The frontend is loading data from the backend endpoint <code>GET /api/bestsellers</code>.</p>
+          <h2>Loading software bestsellers</h2>
+          <p>Fetching the latest Amazon Poland software bestsellers.</p>
         </section>
       } @else if (hasError()) {
         <section class="state-card is-error">
-          <h2>Unable to load bestsellers</h2>
+          <h2>Couldn't load the bestseller list</h2>
           <p>{{ errorMessage() }}</p>
         </section>
       } @else if (isEmpty()) {
         <section class="state-card">
-          <h2>No bestsellers available</h2>
-          <p>The backend returned an empty product list for the Software category.</p>
+          <h2>No products available right now</h2>
+          <p>Try refreshing again in a moment.</p>
         </section>
       } @else {
         <p-dataview [value]="products()" layout="list">
@@ -50,7 +50,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                     @if (product.imageUrl) {
                       <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
                     } @else {
-                      <div class="image-fallback">No image</div>
+                      <div class="image-fallback">Image unavailable</div>
                     }
                   </div>
 
@@ -87,7 +87,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                         (click)="toggleFavorite(product)"
                       >
                         @if (isFavoriteOperationInProgress(product.amazonProductId)) {
-                          Working...
+                          Updating...
                         } @else if (isFavorite(product.amazonProductId)) {
                           Remove from favorites
                         } @else {
@@ -316,7 +316,7 @@ export class BestsellersPageComponent {
 
   protected readonly state = signal<BestsellersViewState>('loading');
   protected readonly products = signal<BestsellerProduct[]>([]);
-  protected readonly errorMessage = signal('Unable to load bestseller list.');
+  protected readonly errorMessage = signal(`We couldn't load the bestseller list right now.`);
 
   protected readonly isLoading = computed(() => this.state() === 'loading');
   protected readonly hasError = computed(() => this.state() === 'error');
@@ -366,7 +366,7 @@ export class BestsellersPageComponent {
 
   private load(): void {
     this.state.set('loading');
-    this.errorMessage.set('Unable to load bestseller list.');
+    this.errorMessage.set(`We couldn't load the bestseller list right now.`);
 
     this.bestsellersApi.getSoftwareBestSellers()
       .pipe(finalize(() => {
@@ -381,7 +381,7 @@ export class BestsellersPageComponent {
         error: () => {
           this.products.set([]);
           this.state.set('error');
-          this.errorMessage.set('The backend did not return bestseller data.');
+          this.errorMessage.set(`We couldn't load bestseller data right now.`);
         }
       });
   }
