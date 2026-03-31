@@ -47,6 +47,29 @@ describe('AuthStateService', () => {
     expect(localStorage.getItem(AUTH_SESSION_STORAGE_KEY)).toBeNull();
   });
 
+  it('setToken persists the normalized session to storage', () => {
+    const service = new AuthStateService();
+    const session = createSession('  active-token  ');
+
+    service.setToken(session);
+
+    expect(service.accessToken()).toBe('active-token');
+    expect(localStorage.getItem(AUTH_SESSION_STORAGE_KEY)).toBe(JSON.stringify({
+      accessToken: 'active-token',
+      expiresAtUtc: session.expiresAtUtc
+    }));
+  });
+
+  it('removes an invalid json payload from storage', () => {
+    localStorage.setItem(AUTH_SESSION_STORAGE_KEY, '{not-valid-json');
+
+    const service = new AuthStateService();
+
+    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.session()).toBeNull();
+    expect(localStorage.getItem(AUTH_SESSION_STORAGE_KEY)).toBeNull();
+  });
+
   it('extracts username from unique_name claim', () => {
     const service = new AuthStateService();
     service.setToken(createSession(createJwt({ unique_name: 'marcin123' })));
