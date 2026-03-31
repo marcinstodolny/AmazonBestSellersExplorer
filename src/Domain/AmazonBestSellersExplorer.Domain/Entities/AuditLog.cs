@@ -28,15 +28,10 @@ public sealed class AuditLog : Entity<Guid>
         var createdAtUtc = DateTime.UtcNow;
         var errors = Validate(id, action, entityType);
 
-        if (errors.Count > 0)
-        {
-            return Result.Fail<AuditLog>(errors);
-        }
-
-        return Result.Success(new AuditLog(id, userId, action, entityType, entityId, createdAtUtc));
+        return errors.Count > 0 ? Result.Fail<AuditLog>(errors) : Result.Success(new AuditLog(id, userId, action, entityType, entityId, createdAtUtc));
     }
 
-    private static IReadOnlyCollection<string> Validate(Guid id, string action, string entityType)
+    private static List<string> Validate(Guid id, string action, string entityType)
     {
         var errors = new List<string>();
 
