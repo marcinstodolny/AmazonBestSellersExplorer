@@ -199,6 +199,22 @@ Environment requirement:
 
 - LocalDB must be available on the machine running the tests
 
+## CI
+
+GitHub Actions CI validates the repository automatically for:
+
+- pushes to `development`
+- pull requests targeting `development`
+
+Current CI scope:
+
+- backend restore and build
+- backend unit tests
+- frontend `npm ci`
+- frontend production build
+
+Integration tests are intentionally not part of GitHub Actions yet because they currently depend on SQL Server LocalDB. That setup is suitable for local development, but it is not a reliable default for GitHub-hosted Linux runners. They can be added to CI later after moving to a CI-friendly database strategy.
+
 ## API Endpoints
 
 ### Auth
