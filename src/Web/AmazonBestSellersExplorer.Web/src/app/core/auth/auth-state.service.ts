@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { AuthSession } from '../../shared/models/auth-session.model';
 
 const authSessionStorageKey = 'amazon-best-sellers-explorer.auth-session';
@@ -8,16 +8,11 @@ const authSessionStorageKey = 'amazon-best-sellers-explorer.auth-session';
 })
 export class AuthStateService {
   private readonly sessionState = signal<AuthSession | null>(this.readSession());
-  private expirationTimerId: ReturnType<typeof setTimeout> | null = null;
+  private expirationTimerId: ReturnType<typeof globalThis.setTimeout> | null = null;
 
-  readonly session = this.sessionState.asReadonly();
-  readonly accessToken = computed(() => {
-    const session = this.sessionState();
-    return session !== null && this.isSessionValid(session)
-      ? session.accessToken
-      : null;
-  });
-  readonly isAuthenticated = computed(() => this.accessToken() !== null);
+  readonly session = (): AuthSession | null => this.getValidSession();
+  readonly accessToken = (): string | null => this.getValidSession()?.accessToken ?? null;
+  readonly isAuthenticated = (): boolean => this.getValidSession() !== null;
 
   setToken(session: AuthSession): void {
     const normalizedSession = this.normalizeSession(session);
@@ -89,6 +84,21 @@ export class AuthStateService {
     return !Number.isNaN(expirationTime) && expirationTime > Date.now();
   }
 
+  private getValidSession(): AuthSession | null {
+    const session = this.sessionState();
+
+    if (session === null) {
+      return null;
+    }
+
+    if (!this.isSessionValid(session)) {
+      this.clearToken();
+      return null;
+    }
+
+    return session;
+  }
+
   private scheduleExpiration(session: AuthSession): void {
     this.clearExpirationTimer();
 
@@ -99,7 +109,7 @@ export class AuthStateService {
       return;
     }
 
-    this.expirationTimerId = window.setTimeout(() => {
+    this.expirationTimerId = globalThis.setTimeout(() => {
       this.clearToken();
     }, expirationDelay);
   }
