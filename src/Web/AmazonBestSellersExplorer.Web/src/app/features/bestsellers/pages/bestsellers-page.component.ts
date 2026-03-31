@@ -41,6 +41,12 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
           <p>Try refreshing again in a moment.</p>
         </section>
       } @else {
+        @if (showFavoriteError()) {
+          <section class="inline-error-panel" aria-live="polite">
+            <p>{{ favoriteError() }}</p>
+          </section>
+        }
+
         <p-dataview [value]="products()" layout="list">
           <ng-template #list let-items>
             <div class="products-grid">
@@ -162,6 +168,13 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     .state-card.is-error {
       border-color: rgba(170, 36, 59, 0.18);
       background: rgba(255, 240, 243, 0.92);
+    }
+
+    .inline-error-panel {
+      padding: 0.9rem 1rem;
+      border-radius: 1rem;
+      background: rgba(255, 240, 243, 0.92);
+      border: 1px solid rgba(170, 36, 59, 0.18);
     }
 
     p {
@@ -322,6 +335,10 @@ export class BestsellersPageComponent {
   protected readonly hasError = computed(() => this.state() === 'error');
   protected readonly isEmpty = computed(() => this.state() === 'empty');
   protected readonly isAuthenticated = this.authState.isAuthenticated;
+  protected readonly favoriteError = computed(() =>
+    this.isAuthenticated() ? this.favoritesState.error() : null);
+  protected readonly showFavoriteError = computed(() =>
+    !this.isLoading() && !this.hasError() && this.favoriteError() !== null);
 
   constructor() {
     this.load();
