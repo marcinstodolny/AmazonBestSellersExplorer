@@ -1,6 +1,7 @@
 import { provideZonelessChangeDetection, signal, WritableSignal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { BestsellerProduct } from '../../../shared/models/bestseller-product.model';
 import { FavoritesStateService } from '../../favorites/data/favorites-state.service';
@@ -132,5 +133,25 @@ describe('BestsellersPageComponent', () => {
     retryButton.click();
 
     expect(favoritesState.loadFavorites).toHaveBeenCalled();
+  });
+
+  it('shows dedicated unavailable state when the bestseller service is not configured correctly', async () => {
+    const { fixture } = await createComponent({
+      isAuthenticated: false,
+      bestsellersApi: {
+        getSoftwareBestSellers: jasmine.createSpy('getSoftwareBestSellers').and.returnValue(
+          throwError(() => new HttpErrorResponse({
+            status: 503,
+            error: {
+              detail: 'The service is not configured correctly. Please try again later.'
+            }
+          }))
+        )
+      }
+    });
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.textContent).toContain('Bestsellers are currently unavailable.');
+    expect(compiled.textContent).toContain('The service is not configured correctly.');
   });
 });
