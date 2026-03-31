@@ -16,7 +16,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     <section class="page-shell">
       <header class="page-header">
         <div>
-          <span class="page-kicker">Public catalog</span>
+          <span class="page-kicker">Software bestsellers</span>
           <h1>Amazon Software Bestsellers</h1>
         </div>
 
@@ -424,7 +424,7 @@ export class BestsellersPageComponent {
         error: () => {
           this.products.set([]);
           this.state.set('error');
-          this.errorMessage.set(`We couldn't load bestseller data right now.`);
+          this.errorMessage.set(`We couldn't load the bestseller list right now.`);
         }
       });
   }
