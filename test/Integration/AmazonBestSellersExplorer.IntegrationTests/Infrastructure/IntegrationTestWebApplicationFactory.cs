@@ -9,15 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
 
-public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<Program>
+public sealed class IntegrationTestWebApplicationFactory(string connectionString) : WebApplicationFactory<Program>
 {
-    private readonly string _connectionString;
-
-    public IntegrationTestWebApplicationFactory(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -26,7 +19,7 @@ public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = _connectionString,
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
                 ["RapidApi:BaseUrl"] = "https://example.com",
                 ["RapidApi:ApiHost"] = "example.com",
                 ["RapidApi:ApiKey"] = "integration-test-api-key"
@@ -39,7 +32,7 @@ public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory
             services.RemoveAll<DbContextOptions<AppDbContext>>();
 
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(_connectionString));
+                options.UseSqlServer(connectionString));
         });
     }
 }

@@ -8,13 +8,12 @@ namespace AmazonBestSellersExplorer.IntegrationTests.Auth;
 [Collection(IntegrationTestCollection.Name)]
 public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifetime
 {
-    private readonly IntegrationTestFixture _fixture = fixture;
-    private HttpClient _client = default!;
+    private HttpClient _client = null!;
 
     public async Task InitializeAsync()
     {
-        _client = _fixture.CreateClient();
-        await _fixture.ResetAsync();
+        _client = fixture.CreateClient();
+        await fixture.ResetAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;

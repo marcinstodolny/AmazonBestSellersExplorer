@@ -12,10 +12,10 @@ namespace AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
     private readonly string _databaseName = $"AmazonBestSellersExplorer_IntegrationTests_{Guid.NewGuid():N}";
-    private SqlConnection _connection = default!;
-    private Respawner _respawner = default!;
+    private SqlConnection _connection = null!;
+    private Respawner _respawner = null!;
 
-    public IntegrationTestWebApplicationFactory Factory { get; private set; } = default!;
+    public IntegrationTestWebApplicationFactory Factory { get; private set; } = null!;
 
     private string ConnectionString =>
         "Server=(localdb)\\MSSQLLocalDB;" +

@@ -8,13 +8,12 @@ namespace AmazonBestSellersExplorer.IntegrationTests.Favorites;
 [Collection(IntegrationTestCollection.Name)]
 public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncLifetime
 {
-    private readonly IntegrationTestFixture _fixture = fixture;
-    private HttpClient _client = default!;
+    private HttpClient _client = null!;
 
     public async Task InitializeAsync()
     {
-        _client = _fixture.CreateClient();
-        await _fixture.ResetAsync();
+        _client = fixture.CreateClient();
+        await fixture.ResetAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -30,7 +29,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     [Fact]
     public async Task AddFavorite_ShouldWork_ForAuthorizedUser()
     {
-        var client = await _fixture.CreateAuthenticatedClientAsync();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         var response = await client.PostAsJsonAsync(
             "/api/favorites",
@@ -42,7 +41,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     [Fact]
     public async Task AddFavorite_ShouldReturn400_WhenProductAlreadyExists()
     {
-        var client = await _fixture.CreateAuthenticatedClientAsync();
+        var client = await fixture.CreateAuthenticatedClientAsync();
         var request = CreateFavoriteRequest("B09TEST002");
 
         var firstResponse = await client.PostAsJsonAsync("/api/favorites", request);
@@ -55,7 +54,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     [Fact]
     public async Task GetFavorites_ShouldReturnSavedProduct()
     {
-        var client = await _fixture.CreateAuthenticatedClientAsync();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         await client.PostAsJsonAsync(
             "/api/favorites",
@@ -76,7 +75,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     [Fact]
     public async Task RemoveFavorite_ShouldDeleteSavedProduct()
     {
-        var client = await _fixture.CreateAuthenticatedClientAsync();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         await client.PostAsJsonAsync(
             "/api/favorites",
