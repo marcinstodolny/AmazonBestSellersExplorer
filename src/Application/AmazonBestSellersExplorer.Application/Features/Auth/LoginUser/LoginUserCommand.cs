@@ -37,23 +37,12 @@ public sealed class LoginUserCommandHandler(
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
         if (user is null)
         {
-            logger.LogWarning(
-                "Login failed for username {Username}. Reason={Reason}.",
-                command.Username.Trim(),
-                "UserNotFound");
-
             return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
         var passwordIsValid = passwordHasher.VerifyPassword(command.Password, user.PasswordHash);
         if (!passwordIsValid)
         {
-            logger.LogWarning(
-                "Login failed for user {UserId} ({Username}). Reason={Reason}.",
-                user.Id,
-                user.Username.Value,
-                "InvalidPassword");
-
             return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
