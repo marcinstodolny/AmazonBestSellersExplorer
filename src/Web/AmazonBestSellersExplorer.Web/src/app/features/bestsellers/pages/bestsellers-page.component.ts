@@ -47,7 +47,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
           </section>
         }
 
-        <p-dataview [value]="products()" layout="list">
+        <p-dataview class="catalog-view" [value]="products()" layout="list">
           <ng-template #list let-items>
             <div class="products-grid">
               @for (product of items; track product.amazonProductId) {
@@ -196,6 +196,20 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1rem;
+      align-items: start;
+    }
+
+    :host ::ng-deep .catalog-view,
+    :host ::ng-deep .catalog-view .p-dataview,
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      padding: 0;
+      border-radius: 0;
     }
 
     .product-card {
@@ -220,6 +234,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       display: grid;
       place-items: center;
       overflow: hidden;
+      padding-top: 0.6rem;
     }
 
     .product-media img {
@@ -227,12 +242,18 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       height: 100%;
       object-fit: cover;
       display: block;
+      border-radius: 1rem 1rem 0 0;
     }
 
     .image-fallback {
       color: #43525d;
       font-size: 0.95rem;
       font-weight: 600;
+      width: 100%;
+      height: 100%;
+      border-radius: 1rem 1rem 0 0;
+      display: grid;
+      place-items: center;
     }
 
     .product-body {

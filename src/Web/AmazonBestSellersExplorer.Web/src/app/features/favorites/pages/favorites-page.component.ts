@@ -35,7 +35,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
           <p>Products saved from the bestseller list will appear here.</p>
         </section>
       } @else {
-        <p-dataview [value]="products()" layout="list">
+        <p-dataview class="catalog-view" [value]="products()" layout="list">
           <ng-template #list let-items>
             <div class="products-grid">
               @for (product of items; track product.amazonProductId) {
@@ -177,6 +177,20 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1rem;
+      align-items: start;
+    }
+
+    :host ::ng-deep .catalog-view,
+    :host ::ng-deep .catalog-view .p-dataview,
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      padding: 0;
+      border-radius: 0;
     }
 
     .product-card {
@@ -196,6 +210,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       display: grid;
       place-items: center;
       overflow: hidden;
+      padding: 0;
     }
 
     .product-media img {
@@ -203,12 +218,18 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       height: 100%;
       object-fit: cover;
       display: block;
+      border-radius: 0;
     }
 
     .image-fallback {
       color: #43525d;
       font-size: 0.95rem;
       font-weight: 600;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      display: grid;
+      place-items: center;
     }
 
     .product-body {
