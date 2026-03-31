@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { DataViewModule } from 'primeng/dataview';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
@@ -6,7 +6,7 @@ import { BestsellersApiService } from '../data/bestsellers-api.service';
 import { BestsellerProduct } from '../../../shared/models/bestseller-product.model';
 import { FavoritesStateService } from '../../favorites/data/favorites-state.service';
 
-type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
+type BestsellersViewState = 'favorites-loading' | 'favorites-error' | 'loading' | 'error' | 'empty' | 'success';
 
 @Component({
   selector: 'app-bestsellers-page',
@@ -25,7 +25,20 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
         </button>
       </header>
 
-      @if (isLoading()) {
+      @if (isFavoritesLoading()) {
+        <section class="state-card">
+          <h2>Loading your favorites</h2>
+          <p>Checking your saved products before showing the bestseller list.</p>
+        </section>
+      } @else if (hasFavoritesError()) {
+        <section class="state-card is-error">
+          <h2>Couldn't load your favorites</h2>
+          <p>{{ favoriteLoadErrorMessage() }}</p>
+          <button type="button" class="refresh-button" (click)="retryFavorites()" [disabled]="isFavoritesRetrying()">
+            {{ isFavoritesRetrying() ? 'Retrying...' : 'Retry favorites' }}
+          </button>
+        </section>
+      } @else if (isLoading()) {
         <section class="state-card">
           <h2>Loading software bestsellers</h2>
           <p>Fetching the latest Amazon Poland software bestsellers.</p>
@@ -407,25 +420,38 @@ export class BestsellersPageComponent {
   private readonly bestsellersApi = inject(BestsellersApiService);
   private readonly favoritesState = inject(FavoritesStateService);
   private readonly authState = inject(AuthStateService);
+  private lastLoadContext: 'anonymous' | 'authenticated' | null = null;
 
   protected readonly state = signal<BestsellersViewState>('loading');
   protected readonly products = signal<BestsellerProduct[]>([]);
   protected readonly errorMessage = signal(`We couldn't load the bestseller list right now.`);
 
+  protected readonly isFavoritesLoading = computed(() => this.state() === 'favorites-loading');
+  protected readonly hasFavoritesError = computed(() => this.state() === 'favorites-error');
+  protected readonly isFavoritesRetrying = this.favoritesState.loading;
   protected readonly isLoading = computed(() => this.state() === 'loading');
   protected readonly hasError = computed(() => this.state() === 'error');
   protected readonly isEmpty = computed(() => this.state() === 'empty');
   protected readonly isAuthenticated = this.authState.isAuthenticated;
+  protected readonly favoriteLoadErrorMessage = computed(() =>
+    this.favoritesState.loadError() ?? `We couldn't load your favorites right now.`);
   protected readonly favoriteError = computed(() =>
     this.isAuthenticated() ? this.favoritesState.error() : null);
   protected readonly showFavoriteError = computed(() =>
     !this.isLoading() && !this.hasError() && this.favoriteError() !== null);
 
   constructor() {
-    this.load();
+    effect(() => {
+      this.syncInitialLoad();
+    });
   }
 
   protected reload(): void {
+    if (this.isAuthenticated() && !this.favoritesState.loadedSuccessfully()) {
+      this.retryFavorites();
+      return;
+    }
+
     this.load();
   }
 
@@ -462,6 +488,11 @@ export class BestsellersPageComponent {
     this.addFavorite(product);
   }
 
+  protected retryFavorites(): void {
+    this.state.set('favorites-loading');
+    this.favoritesState.loadFavorites();
+  }
+
   private load(): void {
     this.state.set('loading');
     this.errorMessage.set(`We couldn't load the bestseller list right now.`);
@@ -482,6 +513,38 @@ export class BestsellersPageComponent {
           this.errorMessage.set(`We couldn't load the bestseller list right now.`);
         }
       });
+  }
+
+  private syncInitialLoad(): void {
+    if (!this.isAuthenticated()) {
+      if (this.lastLoadContext !== 'anonymous') {
+        this.lastLoadContext = 'anonymous';
+        this.load();
+      }
+
+      return;
+    }
+
+    if (this.favoritesState.loadedSuccessfully()) {
+      if (this.lastLoadContext !== 'authenticated') {
+        this.lastLoadContext = 'authenticated';
+        this.load();
+      }
+
+      return;
+    }
+
+    this.lastLoadContext = null;
+
+    if (this.favoritesState.loading() || !this.favoritesState.hasLoaded()) {
+      this.state.set('favorites-loading');
+      return;
+    }
+
+    if (this.favoritesState.hasLoadError()) {
+      this.products.set([]);
+      this.state.set('favorites-error');
+    }
   }
 
   private addFavorite(product: BestsellerProduct): void {
