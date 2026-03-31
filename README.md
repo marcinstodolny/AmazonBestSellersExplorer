@@ -238,3 +238,4 @@ Integration tests are intentionally not part of GitHub Actions yet because they 
 - integration tests require SQL Server LocalDB
 - favorites endpoints require JWT authentication
 - Angular dev mode expects the API to be reachable at `https://localhost:7233`
+- audit logs are currently created for successful registration, successful login, and favorite add/remove operations

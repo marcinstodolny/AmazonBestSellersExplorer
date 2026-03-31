@@ -3,6 +3,7 @@ using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
+using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
 using MediatR;
 
@@ -14,9 +15,11 @@ public sealed record LoginUserCommand(
 
 public sealed class LoginUserCommandHandler(
     IUserRepository userRepository,
+    IAuditLogRepository auditLogRepository,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
-    IValidator<LoginUserCommand> validator)
+    IValidator<LoginUserCommand> validator,
+    IUnitOfWork unitOfWork)
     : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
 {
     public async Task<Result<AuthResponse>> Handle(
@@ -40,6 +43,20 @@ public sealed class LoginUserCommandHandler(
         {
             return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
+
+        var auditLogResult = AuditLog.Create(
+            action: "UserLoggedIn",
+            entityType: nameof(User),
+            entityId: user.Id.ToString(),
+            userId: user.Id);
+
+        if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
+        {
+            return Result.Fail<AuthResponse>(auditLogResult.Errors);
+        }
+
+        await auditLogRepository.AddAsync(auditLog, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var authResponse = jwtTokenService.GenerateToken(user);
 

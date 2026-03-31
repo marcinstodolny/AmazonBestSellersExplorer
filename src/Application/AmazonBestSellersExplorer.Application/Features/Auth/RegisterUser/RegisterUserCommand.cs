@@ -16,13 +16,13 @@ public sealed record RegisterUserCommand(
 
 public sealed class RegisterUserCommandHandler(
     IUserRepository userRepository,
+    IAuditLogRepository auditLogRepository,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
     IValidator<RegisterUserCommand> validator,
     IUnitOfWork unitOfWork)
     : IRequestHandler<RegisterUserCommand, Result<AuthResponse>>
 {
-    private const int MinimumPasswordLength = 8;
 
     public async Task<Result<AuthResponse>> Handle(
         RegisterUserCommand command,
@@ -48,6 +48,19 @@ public sealed class RegisterUserCommandHandler(
         }
 
         await userRepository.AddAsync(user, cancellationToken);
+
+        var auditLogResult = AuditLog.Create(
+            action: "UserRegistered",
+            entityType: nameof(User),
+            entityId: user.Id.ToString(),
+            userId: user.Id);
+
+        if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
+        {
+            return Result.Fail<AuthResponse>(auditLogResult.Errors);
+        }
+
+        await auditLogRepository.AddAsync(auditLog, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var authResponse = jwtTokenService.GenerateToken(user);

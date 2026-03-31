@@ -1,6 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using AmazonBestSellersExplorer.Domain.Entities;
 using AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
+using AmazonBestSellersExplorer.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AmazonBestSellersExplorer.IntegrationTests.Auth;
@@ -21,9 +25,11 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task Register_ShouldReturn200AndToken()
     {
+        var username = TestAuthHelper.GenerateUsername();
+
         var response = await _client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(TestAuthHelper.GenerateUsername(), TestAuthHelper.DefaultPassword));
+            new RegisterUserRequest(username, TestAuthHelper.DefaultPassword));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -32,6 +38,15 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
         Assert.NotNull(body);
         Assert.False(string.IsNullOrWhiteSpace(body.AccessToken));
         Assert.True(body.ExpiresAtUtc > DateTime.UtcNow);
+
+        using var scope = fixture.Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await dbContext.Users.SingleAsync();
+        var auditLog = await dbContext.AuditLogs.SingleAsync(log => log.Action == "UserRegistered");
+
+        Assert.Equal(nameof(User), auditLog.EntityType);
+        Assert.Equal(user.Id.ToString(), auditLog.EntityId);
+        Assert.Equal(user.Id, auditLog.UserId);
     }
 
     [Fact]
@@ -73,6 +88,15 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
         Assert.NotNull(body);
         Assert.False(string.IsNullOrWhiteSpace(body.AccessToken));
         Assert.True(body.ExpiresAtUtc > DateTime.UtcNow);
+
+        using var scope = fixture.Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await dbContext.Users.SingleAsync();
+        var auditLog = await dbContext.AuditLogs.SingleAsync(log => log.Action == "UserLoggedIn");
+
+        Assert.Equal(nameof(User), auditLog.EntityType);
+        Assert.Equal(user.Id.ToString(), auditLog.EntityId);
+        Assert.Equal(user.Id, auditLog.UserId);
     }
 
     [Fact]
