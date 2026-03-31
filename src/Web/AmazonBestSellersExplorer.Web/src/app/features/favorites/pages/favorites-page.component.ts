@@ -49,7 +49,20 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                   </div>
 
                   <div class="product-body">
-                    <h2 [attr.title]="product.title">{{ product.title }}</h2>
+                    <div class="product-heading">
+                      <h2 [attr.title]="product.title">{{ product.title }}</h2>
+
+                      <button
+                        type="button"
+                        class="remove-icon-button"
+                        (click)="remove(product.amazonProductId)"
+                        [disabled]="favoritesState.isOperationInProgress(product.amazonProductId)"
+                        aria-label="Remove from favorites"
+                        title="Remove from favorites"
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </div>
 
                     <dl class="product-metrics">
                       <div>
@@ -73,14 +86,6 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                         View on Amazon
                       </a>
 
-                      <button
-                        type="button"
-                        class="remove-button"
-                        (click)="remove(product.amazonProductId)"
-                        [disabled]="favoritesState.isOperationInProgress(product.amazonProductId)"
-                      >
-                        {{ favoritesState.isOperationInProgress(product.amazonProductId) ? 'Removing...' : 'Remove from favorites' }}
-                      </button>
                     </div>
                   </div>
                 </article>
@@ -122,8 +127,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       line-height: 1;
     }
 
-    .refresh-button,
-    .remove-button {
+    .refresh-button {
       border: 0;
       border-radius: 999px;
       padding: 0.85rem 1.15rem;
@@ -135,13 +139,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     .refresh-button {
       background: #15308d;
     }
-
-    .remove-button {
-      background: #8f1d35;
-    }
-
-    .refresh-button:disabled,
-    .remove-button:disabled {
+    .refresh-button:disabled {
       cursor: wait;
       opacity: 0.7;
     }
@@ -201,9 +199,15 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       background: rgba(255, 255, 255, 0.92);
       border: 1px solid rgba(19, 32, 40, 0.1);
       box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
     }
 
-.product-media {
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 34px rgba(19, 32, 40, 0.1);
+    }
+
+    .product-media {
       background: #ffffff;
       display: grid;
       place-items: center;
@@ -235,6 +239,13 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       align-content: start;
     }
 
+    .product-heading {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: start;
+    }
+
     .product-body h2 {
       color: #132028;
       font-size: 1.12rem;
@@ -255,9 +266,8 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     }
 
     .product-metrics div {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      gap: 0.22rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid rgba(19, 32, 40, 0.08);
     }
@@ -277,7 +287,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       color: #132028;
       font-size: 1rem;
       font-weight: 800;
-      text-align: right;
+      text-align: left;
     }
 
     .product-actions {
@@ -305,14 +315,20 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       opacity: 0.92;
     }
 
-    .remove-button {
-      width: 100%;
-      border: 1px solid rgba(143, 29, 53, 0.22);
+    .remove-icon-button {
+      width: 2.35rem;
+      height: 2.35rem;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid rgba(143, 29, 53, 0.16);
       border-radius: 999px;
-      padding: 0.82rem 1rem;
-      background: rgba(255, 255, 255, 0.96);
+      padding: 0;
+      background: rgba(255, 255, 255, 0.88);
       color: #7d1730;
       font-weight: 700;
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
       transition:
         transform 160ms ease,
         opacity 160ms ease,
@@ -321,10 +337,15 @@ import { FavoritesStateService } from '../data/favorites-state.service';
         color 160ms ease;
     }
 
-    .remove-button:hover:not(:disabled) {
+    .remove-icon-button:hover:not(:disabled) {
       transform: translateY(-1px);
       background: rgba(143, 29, 53, 0.06);
       border-color: rgba(143, 29, 53, 0.3);
+    }
+
+    .remove-icon-button:disabled {
+      cursor: wait;
+      opacity: 0.7;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
