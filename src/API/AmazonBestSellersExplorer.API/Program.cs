@@ -53,10 +53,11 @@ namespace AmazonBestSellersExplorer.API
                 app.UseSwaggerUI();
             }
 
-            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
             app.UseHttpsRedirection();
 
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
             app.UseAuthentication();
+            app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseAuthorization();
 
 

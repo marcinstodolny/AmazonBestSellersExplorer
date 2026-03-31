@@ -6,6 +6,7 @@ using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 
@@ -18,6 +19,7 @@ public sealed class LoginUserCommandHandler(
     IAuditLogRepository auditLogRepository,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
+    ILogger<LoginUserCommandHandler> logger,
     IValidator<LoginUserCommand> validator,
     IUnitOfWork unitOfWork)
     : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
@@ -35,12 +37,23 @@ public sealed class LoginUserCommandHandler(
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
         if (user is null)
         {
+            logger.LogWarning(
+                "Login failed for username {Username}. Reason={Reason}.",
+                command.Username.Trim(),
+                "UserNotFound");
+
             return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
         var passwordIsValid = passwordHasher.VerifyPassword(command.Password, user.PasswordHash);
         if (!passwordIsValid)
         {
+            logger.LogWarning(
+                "Login failed for user {UserId} ({Username}). Reason={Reason}.",
+                user.Id,
+                user.Username.Value,
+                "InvalidPassword");
+
             return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
         }
 
