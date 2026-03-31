@@ -1,6 +1,6 @@
 @AmazonBestSellersExplorer.API_HostAddress = http://localhost:5215
 
-GET {{AmazonBestSellersExplorer.API_HostAddress}}/weatherforecast/
+GET {{AmazonBestSellersExplorer.API_HostAddress}}/api/bestsellers
 Accept: application/json
 
 ###
