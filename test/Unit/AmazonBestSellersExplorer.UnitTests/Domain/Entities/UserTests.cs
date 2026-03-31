@@ -163,4 +163,17 @@ public sealed class UserTests
         Assert.True(result.IsFailed);
         Assert.Contains("Password hash is required.", result.Errors);
     }
+
+    [Fact]
+    public void Update_ShouldReturnFailure_WhenUsernameIsInvalid()
+    {
+        var userResult = User.Create("Marcin123", "hashed-password");
+
+        Assert.True(userResult.TryGetValue(out var user));
+
+        var result = user!.Update("bad!", "new-hash");
+
+        Assert.True(result.IsFailed);
+        Assert.Contains("Username can contain only ASCII letters and digits.", result.Errors);
+    }
 }

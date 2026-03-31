@@ -46,6 +46,15 @@ public sealed class UsernameTests
     }
 
     [Fact]
+    public void Create_ShouldReturnFailure_WhenUsernameContainsWhitespace()
+    {
+        var result = Username.Create("Marcin 123");
+
+        Assert.True(result.IsFailed);
+        Assert.Contains("Username can contain only ASCII letters and digits.", result.Errors);
+    }
+
+    [Fact]
     public void FromPersistence_ShouldReturnUsername_WhenValueIsValid()
     {
         var username = Username.FromPersistence("Marcin123");
