@@ -61,7 +61,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                   </div>
 
                   <div class="product-body">
-                    <h2>{{ product.title }}</h2>
+                    <h2 [attr.title]="product.title">{{ product.title }}</h2>
 
                     <dl class="product-metrics">
                       <div>
