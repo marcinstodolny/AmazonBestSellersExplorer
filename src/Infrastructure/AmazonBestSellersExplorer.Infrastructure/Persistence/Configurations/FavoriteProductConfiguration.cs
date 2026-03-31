@@ -1,4 +1,5 @@
 using AmazonBestSellersExplorer.Domain.Entities;
+using AmazonBestSellersExplorer.Domain.Rules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -7,7 +8,6 @@ namespace AmazonBestSellersExplorer.Infrastructure.Persistence.Configurations;
 public sealed class FavoriteProductConfiguration : IEntityTypeConfiguration<FavoriteProduct>
 {
     private const string CaseInsensitiveCollation = "Latin1_General_100_CI_AS";
-    private const int AmazonProductIdMaxLength = 64;
 
     public void Configure(EntityTypeBuilder<FavoriteProduct> builder)
     {
@@ -22,7 +22,7 @@ public sealed class FavoriteProductConfiguration : IEntityTypeConfiguration<Favo
             .IsRequired();
 
         builder.Property(favoriteProduct => favoriteProduct.AmazonProductId)
-            .HasMaxLength(AmazonProductIdMaxLength)
+            .HasMaxLength(FavoriteProductRules.AmazonProductIdMaxLength)
             .IsUnicode(false)
             .UseCollation(CaseInsensitiveCollation)
             .IsRequired();
