@@ -3,6 +3,7 @@ using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
+using AmazonBestSellersExplorer.Domain.Rules;
 using FluentValidation;
 using MediatR;
 
@@ -93,17 +94,13 @@ public sealed class AddFavoriteProductCommandHandler(
 
 public sealed class AddFavoriteProductCommandValidator : AbstractValidator<AddFavoriteProductCommand>
 {
-    private const int AmazonProductIdMaxLength = 64;
-    private const double MinimumRating = 0;
-    private const double MaximumRating = 5;
-
     public AddFavoriteProductCommandValidator()
     {
         RuleFor(command => command.AmazonProductId)
             .NotEmpty()
             .WithMessage(ApplicationMessages.Favorites.AmazonProductIdRequired)
-            .Must(amazonProductId => string.IsNullOrWhiteSpace(amazonProductId) || amazonProductId.Trim().Length <= AmazonProductIdMaxLength)
-            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdMaximumLength(AmazonProductIdMaxLength));
+            .Must(amazonProductId => string.IsNullOrWhiteSpace(amazonProductId) || amazonProductId.Trim().Length <= FavoriteProductRules.AmazonProductIdMaxLength)
+            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdMaximumLength(FavoriteProductRules.AmazonProductIdMaxLength));
 
         RuleFor(command => command.Title)
             .NotEmpty()
@@ -116,11 +113,11 @@ public sealed class AddFavoriteProductCommandValidator : AbstractValidator<AddFa
             .WithMessage(ApplicationMessages.Favorites.ProductUrlInvalid);
 
         RuleFor(command => command.Price)
-            .Must(price => price is null || price >= 0)
+            .Must(price => price is null or >= 0)
             .WithMessage(ApplicationMessages.Favorites.PriceMustNotBeNegative);
 
         RuleFor(command => command.Rating)
-            .Must(rating => rating is null || rating is >= MinimumRating and <= MaximumRating)
+            .Must(rating => rating is null or >= FavoriteProductRules.MinimumRating and <= FavoriteProductRules.MaximumRating)
             .WithMessage(ApplicationMessages.Favorites.RatingMustBeBetweenZeroAndFive);
 
         RuleFor(command => command.ImageUrl)

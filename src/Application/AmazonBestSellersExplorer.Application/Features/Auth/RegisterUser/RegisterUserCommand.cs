@@ -4,6 +4,7 @@ using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
+using AmazonBestSellersExplorer.Domain.Rules;
 using AmazonBestSellersExplorer.Domain.ValueObjects;
 using FluentValidation;
 using MediatR;
@@ -71,8 +72,6 @@ public sealed class RegisterUserCommandHandler(
 
 public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    private const int MinimumPasswordLength = 8;
-
     public RegisterUserCommandValidator()
     {
         RuleFor(command => command.Username)
@@ -96,8 +95,8 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .DependentRules(() =>
             {
                 RuleFor(command => command.Password)
-                    .MinimumLength(MinimumPasswordLength)
-                    .WithMessage(ApplicationMessages.Auth.PasswordMinimumLength(MinimumPasswordLength));
+                    .MinimumLength(UserRules.PasswordMinimumLength)
+                    .WithMessage(ApplicationMessages.Auth.PasswordMinimumLength(UserRules.PasswordMinimumLength));
 
                 RuleFor(command => command.Password)
                     .Must(static password => password.Any(char.IsUpper))
