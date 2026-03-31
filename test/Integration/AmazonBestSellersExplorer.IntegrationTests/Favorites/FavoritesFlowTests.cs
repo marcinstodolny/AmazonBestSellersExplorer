@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
 using Xunit;
@@ -7,16 +6,15 @@ using Xunit;
 namespace AmazonBestSellersExplorer.IntegrationTests.Favorites;
 
 [Collection(IntegrationTestCollection.Name)]
-public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory factory)
-    : IClassFixture<IntegrationTestWebApplicationFactory>, IAsyncLifetime
+public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncLifetime
 {
-    private readonly IntegrationTestWebApplicationFactory _factory = factory;
+    private readonly IntegrationTestFixture _fixture = fixture;
     private HttpClient _client = default!;
 
     public async Task InitializeAsync()
     {
-        _client = _factory.CreateClient();
-        await _factory.ResetDatabaseAsync();
+        _client = _fixture.CreateClient();
+        await _fixture.ResetAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -32,7 +30,7 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
     [Fact]
     public async Task AddFavorite_ShouldWork_ForAuthorizedUser()
     {
-        var client = await CreateAuthenticatedClientAsync();
+        var client = await _fixture.CreateAuthenticatedClientAsync();
 
         var response = await client.PostAsJsonAsync(
             "/api/favorites",
@@ -44,7 +42,7 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
     [Fact]
     public async Task AddFavorite_ShouldReturn400_WhenProductAlreadyExists()
     {
-        var client = await CreateAuthenticatedClientAsync();
+        var client = await _fixture.CreateAuthenticatedClientAsync();
         var request = CreateFavoriteRequest("B09TEST002");
 
         var firstResponse = await client.PostAsJsonAsync("/api/favorites", request);
@@ -57,7 +55,7 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
     [Fact]
     public async Task GetFavorites_ShouldReturnSavedProduct()
     {
-        var client = await CreateAuthenticatedClientAsync();
+        var client = await _fixture.CreateAuthenticatedClientAsync();
 
         await client.PostAsJsonAsync(
             "/api/favorites",
@@ -78,7 +76,7 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
     [Fact]
     public async Task RemoveFavorite_ShouldDeleteSavedProduct()
     {
-        var client = await CreateAuthenticatedClientAsync();
+        var client = await _fixture.CreateAuthenticatedClientAsync();
 
         await client.PostAsJsonAsync(
             "/api/favorites",
@@ -96,35 +94,6 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
         Assert.Empty(body);
     }
 
-    private async Task<HttpClient> CreateAuthenticatedClientAsync()
-    {
-        var username = GenerateUsername();
-        const string password = "StrongPassword1";
-
-        var registerResponse = await _client.PostAsJsonAsync(
-            "/api/auth/register",
-            new RegisterUserRequest(username, password));
-
-        Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
-
-        var loginResponse = await _client.PostAsJsonAsync(
-            "/api/auth/login",
-            new LoginUserRequest(username, password));
-
-        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
-
-        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
-
-        Assert.NotNull(authResponse);
-        Assert.False(string.IsNullOrWhiteSpace(authResponse.AccessToken));
-
-        var authenticatedClient = _factory.CreateClient();
-        authenticatedClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", authResponse.AccessToken);
-
-        return authenticatedClient;
-    }
-
     private static AddFavoriteProductRequest CreateFavoriteRequest(string amazonProductId)
     {
         return new AddFavoriteProductRequest(
@@ -136,30 +105,4 @@ public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory fact
             ImageUrl: "https://images.example.com/" + amazonProductId + ".jpg");
     }
 
-    private static string GenerateUsername()
-    {
-        return "user" + Guid.NewGuid().ToString("N")[..12];
-    }
-
-    private sealed record RegisterUserRequest(string Username, string Password);
-
-    private sealed record LoginUserRequest(string Username, string Password);
-
-    private sealed record AuthResponseDto(string AccessToken, DateTime ExpiresAtUtc);
-
-    private sealed record AddFavoriteProductRequest(
-        string AmazonProductId,
-        string Title,
-        decimal? Price,
-        double? Rating,
-        string ProductUrl,
-        string? ImageUrl);
-
-    private sealed record FavoriteProductDto(
-        string AmazonProductId,
-        string Title,
-        decimal? Price,
-        double? Rating,
-        string ProductUrl,
-        string? ImageUrl);
 }

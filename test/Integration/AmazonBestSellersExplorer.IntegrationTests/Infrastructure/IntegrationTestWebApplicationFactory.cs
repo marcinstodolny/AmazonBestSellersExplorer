@@ -2,20 +2,21 @@ using AmazonBestSellersExplorer.API;
 using AmazonBestSellersExplorer.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
 
 public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private const string TestDatabaseName = "AmazonBestSellersExplorer_IntegrationTests";
-    private const string TestConnectionString =
-        "Server=(localdb)\\MSSQLLocalDB;" +
-        $"Database={TestDatabaseName};" +
-        "Trusted_Connection=True;" +
-        "TrustServerCertificate=True;" +
-        "MultipleActiveResultSets=true";
+    private readonly string _connectionString;
+
+    public IntegrationTestWebApplicationFactory(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -25,20 +26,20 @@ public sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["ConnectionStrings:DefaultConnection"] = _connectionString,
                 ["RapidApi:BaseUrl"] = "https://example.com",
                 ["RapidApi:ApiHost"] = "example.com",
                 ["RapidApi:ApiKey"] = "integration-test-api-key"
             });
         });
-    }
 
-    public async Task ResetDatabaseAsync()
-    {
-        using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<AppDbContext>();
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(_connectionString));
+        });
     }
 }
