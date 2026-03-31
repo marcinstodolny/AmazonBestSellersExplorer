@@ -69,16 +69,24 @@ The Angular application is organized into:
 - `features/favorites`
   protected favorites flow with shared state based on Signals
 
-## Local Run
+## Demo Flow
 
-## Prerequisites
+1. Open the public best sellers page.
+2. Register a new account or log in with an existing one.
+3. Add a product from the best sellers list to favorites.
+4. Open the favorites page to verify the saved product.
+5. Remove the product from favorites and confirm the list updates.
+
+## Local Setup
+
+### Prerequisites
 
 - .NET SDK 10
 - Node.js + npm
 - SQL Server LocalDB
 - RapidAPI key for `real-time-amazon-data`
 
-## Backend
+### Backend
 
 From the repository root:
 
@@ -93,7 +101,7 @@ By default the API uses:
 - database: `AmazonBestSellersExplorer`
 - Swagger: `https://localhost:7233/swagger`
 
-## Database
+### Database
 
 The default connection string is in:
 
@@ -113,7 +121,7 @@ To apply the current schema locally:
 dotnet ef database update --project src\Infrastructure\AmazonBestSellersExplorer.Infrastructure\AmazonBestSellersExplorer.Infrastructure.csproj --startup-project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
 ```
 
-## RapidAPI
+### RapidAPI
 
 The backend bestseller endpoint requires a valid RapidAPI key.
 
@@ -139,7 +147,7 @@ Example:
 dotnet user-secrets set "RapidApi:ApiKey" "<YOUR_RAPIDAPI_KEY>" --project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
 ```
 
-## Frontend
+### Frontend
 
 Frontend project:
 
@@ -173,6 +181,10 @@ Frontend tests:
 cd src\Web\AmazonBestSellersExplorer.Web
 npm test
 ```
+
+Practical note:
+
+- the frontend test target uses Angular/Karma and requires a local environment able to start a test browser such as Chrome or Chromium
 
 ### Integration Test Notes
 
