@@ -18,4 +18,8 @@
       <Deploy />
     </Project>
   </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/Integration/">
+    <Project Path="test/Integration/AmazonBestSellersExplorer.IntegrationTests/AmazonBestSellersExplorer.IntegrationTests.csproj" Id="424ad4ed-286d-4f84-9d29-67aff322f182" />
+  </Folder>
 </Solution>
