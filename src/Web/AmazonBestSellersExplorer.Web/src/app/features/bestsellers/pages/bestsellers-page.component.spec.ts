@@ -143,7 +143,7 @@ describe('BestsellersPageComponent', () => {
           throwError(() => new HttpErrorResponse({
             status: 503,
             error: {
-              detail: 'Bestsellers are currently unavailable. The service is not configured correctly. Please try again later.'
+              detail: 'The service is not configured correctly. Please try again later.'
             }
           }))
         )
