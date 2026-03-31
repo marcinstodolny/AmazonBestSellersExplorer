@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { AuthSession } from '../../shared/models/auth-session.model';
 
 const authSessionStorageKey = 'amazon-best-sellers-explorer.auth-session';
@@ -10,9 +10,21 @@ export class AuthStateService {
   private readonly sessionState = signal<AuthSession | null>(this.readSession());
   private expirationTimerId: ReturnType<typeof globalThis.setTimeout> | null = null;
 
-  readonly session = (): AuthSession | null => this.getValidSession();
-  readonly accessToken = (): string | null => this.getValidSession()?.accessToken ?? null;
-  readonly isAuthenticated = (): boolean => this.getValidSession() !== null;
+  readonly session = computed(() => this.sessionState());
+  readonly accessToken = computed(() => this.session()?.accessToken ?? null);
+  readonly isAuthenticated = computed(() => this.session() !== null);
+
+  constructor() {
+    this.revalidateSession();
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', this.handleWindowFocus);
+    }
+  }
 
   setToken(session: AuthSession): void {
     const normalizedSession = this.normalizeSession(session);
@@ -31,6 +43,14 @@ export class AuthStateService {
     this.clearExpirationTimer();
     this.sessionState.set(null);
     localStorage.removeItem(authSessionStorageKey);
+  }
+
+  revalidateSession(): void {
+    const session = this.sessionState();
+
+    if (session !== null && !this.isSessionValid(session)) {
+      this.clearToken();
+    }
   }
 
   private readSession(): AuthSession | null {
@@ -84,21 +104,6 @@ export class AuthStateService {
     return !Number.isNaN(expirationTime) && expirationTime > Date.now();
   }
 
-  private getValidSession(): AuthSession | null {
-    const session = this.sessionState();
-
-    if (session === null) {
-      return null;
-    }
-
-    if (!this.isSessionValid(session)) {
-      this.clearToken();
-      return null;
-    }
-
-    return session;
-  }
-
   private scheduleExpiration(session: AuthSession): void {
     this.clearExpirationTimer();
 
@@ -113,6 +118,16 @@ export class AuthStateService {
       this.clearToken();
     }, expirationDelay);
   }
+
+  private readonly handleWindowFocus = (): void => {
+    this.revalidateSession();
+  };
+
+  private readonly handleVisibilityChange = (): void => {
+    if (document.visibilityState === 'visible') {
+      this.revalidateSession();
+    }
+  };
 
   private clearExpirationTimer(): void {
     if (this.expirationTimerId !== null) {

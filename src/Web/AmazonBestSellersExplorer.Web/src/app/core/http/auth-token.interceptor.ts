@@ -5,6 +5,7 @@ import { apiConfig } from '../config/api.config';
 
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
   const authState = inject(AuthStateService);
+  authState.revalidateSession();
   const accessToken = authState.accessToken();
 
   if (!accessToken || !request.url.startsWith(apiConfig.baseUrl)) {

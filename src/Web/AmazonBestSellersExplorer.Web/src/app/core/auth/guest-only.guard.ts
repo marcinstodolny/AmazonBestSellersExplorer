@@ -5,6 +5,7 @@ import { AuthStateService } from './auth-state.service';
 export const guestOnlyGuard: CanActivateFn = () => {
   const authState = inject(AuthStateService);
   const router = inject(Router);
+  authState.revalidateSession();
 
   return authState.isAuthenticated()
     ? router.createUrlTree(['/favorites'])
