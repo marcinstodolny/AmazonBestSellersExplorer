@@ -1,4 +1,5 @@
 using AmazonBestSellersExplorer.Domain.Base;
+using AmazonBestSellersExplorer.API.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AmazonBestSellersExplorer.API.Extensions;
@@ -17,17 +18,7 @@ internal static class ControllerBaseExtensions
 
     private static ObjectResult ToProblemDetailsResult(this ControllerBase controller, IReadOnlyCollection<string> errors, int statusCode, string title)
     {
-        var problemDetails = new ProblemDetails
-        {
-            Status = statusCode,
-            Title = title,
-            Detail = string.Join(" ", errors),
-            Instance = controller.HttpContext.Request.Path,
-            Extensions =
-            {
-                ["errors"] = errors
-            }
-        };
+        var problemDetails = ApiProblemDetailsFactory.Create(controller.HttpContext, errors, statusCode, title);
 
         return new ObjectResult(problemDetails)
         {
