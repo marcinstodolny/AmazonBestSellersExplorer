@@ -6,7 +6,6 @@ using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 
@@ -19,7 +18,6 @@ public sealed class LoginUserCommandHandler(
     IAuditLogRepository auditLogRepository,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
-    ILogger<LoginUserCommandHandler> logger,
     IValidator<LoginUserCommand> validator,
     IUnitOfWork unitOfWork)
     : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
