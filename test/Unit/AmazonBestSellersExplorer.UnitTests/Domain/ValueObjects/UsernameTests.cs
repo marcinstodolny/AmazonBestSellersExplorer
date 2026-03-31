@@ -44,4 +44,22 @@ public sealed class UsernameTests
         Assert.True(result.IsFailed);
         Assert.Contains("Username can contain only ASCII letters and digits.", result.Errors);
     }
+
+    [Fact]
+    public void FromPersistence_ShouldReturnUsername_WhenValueIsValid()
+    {
+        var username = Username.FromPersistence("Marcin123");
+
+        Assert.Equal("Marcin123", username.Value);
+    }
+
+    [Fact]
+    public void FromPersistence_ShouldThrow_WhenValueIsInvalid()
+    {
+        var action = () => Username.FromPersistence("!");
+
+        var exception = Assert.Throws<InvalidOperationException>(action);
+
+        Assert.Equal("Persisted username value is invalid.", exception.Message);
+    }
 }
