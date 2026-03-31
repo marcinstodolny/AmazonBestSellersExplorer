@@ -20,13 +20,19 @@ export class FavoritesStateService {
   private readonly favoritesState = signal<FavoriteProduct[]>([]);
   private readonly loadingState = signal(false);
   private readonly errorState = signal<string | null>(null);
+  private readonly loadErrorState = signal<string | null>(null);
   private readonly operationIdsState = signal<Set<string>>(new Set<string>());
   private readonly hasLoadedState = signal(false);
 
   readonly favorites = this.favoritesState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly error = this.errorState.asReadonly();
+  readonly loadError = this.loadErrorState.asReadonly();
   readonly hasLoaded = this.hasLoadedState.asReadonly();
+  readonly loadedSuccessfully = computed(() =>
+    this.hasLoadedState() && !this.loadingState() && this.loadErrorState() === null);
+  readonly hasLoadError = computed(() =>
+    this.hasLoadedState() && !this.loadingState() && this.loadErrorState() !== null);
   readonly favoriteIds = computed(() => new Set(this.favoritesState().map(product => product.amazonProductId)));
   readonly operationIds = this.operationIdsState.asReadonly();
   readonly hasPendingOperations = computed(() => this.operationIdsState().size > 0);
@@ -78,6 +84,7 @@ export class FavoritesStateService {
 
     this.loadingState.set(true);
     this.errorState.set(null);
+    this.loadErrorState.set(null);
 
     this.favoritesApi.getFavorites()
       .pipe(finalize(() => {
@@ -92,6 +99,7 @@ export class FavoritesStateService {
           }
 
           this.favoritesState.set(favorites);
+          this.loadErrorState.set(null);
           this.hasLoadedState.set(true);
         },
         error: () => {
@@ -100,7 +108,8 @@ export class FavoritesStateService {
           }
 
           this.favoritesState.set([]);
-          this.errorState.set(`We couldn't load your saved products right now.`);
+          this.loadErrorState.set(`We couldn't load your saved products right now.`);
+          this.errorState.set(this.loadErrorState());
           this.hasLoadedState.set(true);
         }
       });
@@ -207,6 +216,7 @@ export class FavoritesStateService {
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
+    this.loadErrorState.set(null);
     this.operationIdsState.set(new Set<string>());
     this.hasLoadedState.set(false);
   }
@@ -219,6 +229,7 @@ export class FavoritesStateService {
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
+    this.loadErrorState.set(null);
     this.operationIdsState.set(new Set<string>());
     this.hasLoadedState.set(false);
   }
