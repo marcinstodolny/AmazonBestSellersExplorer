@@ -3,6 +3,7 @@ using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.API.Authentication;
+using AmazonBestSellersExplorer.API.Middleware;
 using AmazonBestSellersExplorer.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -52,6 +53,7 @@ namespace AmazonBestSellersExplorer.API
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
