@@ -52,6 +52,22 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
             <div class="products-grid">
               @for (product of items; track product.amazonProductId) {
                 <article class="product-card" [class.is-favorite]="isFavorite(product.amazonProductId)">
+                  @if (isAuthenticated()) {
+                    <button
+                      type="button"
+                      class="favorite-toggle-button"
+                      [class.is-active]="isFavorite(product.amazonProductId)"
+                      [disabled]="isFavoriteOperationInProgress(product.amazonProductId)"
+                      (click)="toggleFavorite(product)"
+                      [attr.aria-label]="isFavorite(product.amazonProductId) ? 'Remove from favorites' : 'Add to favorites'"
+                      [attr.title]="isFavorite(product.amazonProductId) ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" />
+                      </svg>
+                    </button>
+                  }
+
                   <div class="product-media">
                     @if (product.imageUrl) {
                       <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
@@ -84,24 +100,6 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                       >
                         View on Amazon
                       </a>
-
-                      @if (isAuthenticated()) {
-                        <button
-                          type="button"
-                          class="favorite-button"
-                          [class.is-active]="isFavorite(product.amazonProductId)"
-                          [disabled]="isFavoriteOperationInProgress(product.amazonProductId)"
-                          (click)="toggleFavorite(product)"
-                        >
-                          @if (isFavoriteOperationInProgress(product.amazonProductId)) {
-                            Updating...
-                          } @else if (isFavorite(product.amazonProductId)) {
-                            Remove from favorites
-                          } @else {
-                            Add to favorites
-                          }
-                        </button>
-                      }
                     </div>
                   </div>
                 </article>
@@ -213,6 +211,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     }
 
     .product-card {
+      position: relative;
       display: grid;
       grid-template-rows: 220px 1fr;
       border-radius: 1.25rem;
@@ -220,6 +219,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       background: rgba(255, 255, 255, 0.92);
       border: 1px solid rgba(19, 32, 40, 0.1);
       box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
     }
 
     .product-card.is-favorite {
@@ -227,14 +227,84 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       box-shadow: 0 12px 28px rgba(24, 64, 179, 0.1);
     }
 
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 34px rgba(19, 32, 40, 0.1);
+    }
+
+    .favorite-toggle-button {
+      position: absolute;
+      top: 0.85rem;
+      right: 0.85rem;
+      z-index: 1;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid rgba(21, 48, 141, 0.16);
+      border-radius: 999px;
+      padding: 0;
+      background: rgba(255, 255, 255, 0.92);
+      color: #4b6280;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition:
+        transform 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease,
+        opacity 160ms ease;
+    }
+
+    .favorite-toggle-button svg {
+      width: 1.2rem;
+      height: 1.2rem;
+      display: block;
+    }
+
+    .favorite-toggle-button path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linejoin: round;
+    }
+
+    .favorite-toggle-button.is-active {
+      color: #8f1d35;
+      border-color: rgba(143, 29, 53, 0.14);
+    }
+
+    .favorite-toggle-button.is-active path {
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .favorite-toggle-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(243, 246, 251, 0.98);
+      border-color: rgba(21, 48, 141, 0.26);
+      color: #163685;
+      box-shadow: 0 8px 18px rgba(19, 32, 40, 0.1);
+    }
+
+    .favorite-toggle-button.is-active:hover:not(:disabled) {
+      background: rgba(255, 244, 246, 0.98);
+      border-color: rgba(143, 29, 53, 0.28);
+      color: #7d1730;
+    }
+
+    .favorite-toggle-button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
     .product-media {
-      background:
-        linear-gradient(180deg, rgba(24, 64, 179, 0.08), rgba(19, 94, 70, 0.12)),
-        #f4f6f7;
+      background: #ffffff;
       display: grid;
       place-items: center;
       overflow: hidden;
-      padding-top: 0.6rem;
+      padding: 10px;
     }
 
     .product-media img {
@@ -242,7 +312,6 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       height: 100%;
       object-fit: cover;
       display: block;
-      border-radius: 1rem 1rem 0 0;
     }
 
     .image-fallback {
@@ -283,9 +352,8 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     }
 
     .product-metrics div {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      gap: 0.22rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid rgba(19, 32, 40, 0.08);
     }
@@ -305,12 +373,11 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       color: #132028;
       font-size: 1rem;
       font-weight: 800;
-      text-align: right;
+      text-align: left;
     }
 
     .product-actions {
       display: grid;
-      gap: 0.75rem;
       margin-top: auto;
     }
 
@@ -333,39 +400,6 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       opacity: 0.92;
     }
 
-    .favorite-button {
-      width: 100%;
-      border: 1px solid rgba(21, 48, 141, 0.22);
-      border-radius: 999px;
-      padding: 0.82rem 1rem;
-      background: rgba(255, 255, 255, 0.96);
-      color: #163685;
-      font-weight: 700;
-      cursor: pointer;
-      transition:
-        transform 160ms ease,
-        opacity 160ms ease,
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease;
-    }
-
-    .favorite-button.is-active {
-      background: rgba(24, 64, 179, 0.1);
-      border-color: rgba(24, 64, 179, 0.3);
-      color: #102a78;
-    }
-
-    .favorite-button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      background: rgba(24, 64, 179, 0.08);
-      border-color: rgba(24, 64, 179, 0.32);
-    }
-
-    .favorite-button:disabled {
-      cursor: wait;
-      opacity: 0.7;
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
