@@ -38,13 +38,12 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
     public async Task Register_ShouldReturn400_WhenUsernameIsAlreadyTaken()
     {
         var username = TestAuthHelper.GenerateUsername();
-        const string password = TestAuthHelper.DefaultPassword;
 
-        await TestAuthHelper.RegisterAsync(_client, username, password);
+        await TestAuthHelper.RegisterAsync(_client, username);
 
         var response = await _client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(username, password));
+            new RegisterUserRequest(username, TestAuthHelper.DefaultPassword));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -60,13 +59,12 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
     public async Task Login_ShouldReturn200AndToken_ForValidCredentials()
     {
         var username = TestAuthHelper.GenerateUsername();
-        const string password = TestAuthHelper.DefaultPassword;
 
-        await TestAuthHelper.RegisterAsync(_client, username, password);
+        await TestAuthHelper.RegisterAsync(_client, username);
 
         var response = await _client.PostAsJsonAsync(
             "/api/auth/login",
-            new LoginUserRequest(username, password));
+            new LoginUserRequest(username, TestAuthHelper.DefaultPassword));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -82,7 +80,7 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
     {
         var username = TestAuthHelper.GenerateUsername();
 
-        await TestAuthHelper.RegisterAsync(_client, username, TestAuthHelper.DefaultPassword);
+        await TestAuthHelper.RegisterAsync(_client, username);
 
         var response = await _client.PostAsJsonAsync(
             "/api/auth/login",
