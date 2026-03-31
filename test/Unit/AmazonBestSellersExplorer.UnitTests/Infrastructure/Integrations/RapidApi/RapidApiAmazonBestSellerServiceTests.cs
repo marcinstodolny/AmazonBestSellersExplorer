@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace AmazonBestSellersExplorer.UnitTests.Infrastructure.Integrations.RapidApi;
@@ -32,7 +33,14 @@ public sealed class RapidApiAmazonBestSellerServiceTests
             BaseAddress = new Uri("https://example.test/")
         };
 
-        var service = new RapidApiAmazonBestSellerService(httpClient);
+        var rapidApiOptions = Options.Create(new RapidApiOptions
+        {
+            BaseUrl = "https://example.test/",
+            ApiKey = "test-key",
+            ApiHost = "example.test"
+        });
+
+        var service = new RapidApiAmazonBestSellerService(httpClient, rapidApiOptions);
 
         await service.GetSoftwareBestSellersAsync(CancellationToken.None);
 

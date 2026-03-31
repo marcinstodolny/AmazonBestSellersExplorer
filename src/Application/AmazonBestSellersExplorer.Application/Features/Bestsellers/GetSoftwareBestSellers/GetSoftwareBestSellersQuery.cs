@@ -27,6 +27,10 @@ public sealed class GetSoftwareBestSellersQueryHandler(
         {
             throw;
         }
+        catch (BestsellersConfigurationException)
+        {
+            return Result.Fail<IReadOnlyList<BestsellerProductDto>>(ApplicationMessages.Bestsellers.ServiceUnavailable);
+        }
         catch
         {
             return Result.Fail<IReadOnlyList<BestsellerProductDto>>(ApplicationMessages.Bestsellers.FailedToRetrieveSoftwareBestSellers);

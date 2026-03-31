@@ -36,5 +36,6 @@ public static class ApplicationMessages
     public static class Bestsellers
     {
         public const string FailedToRetrieveSoftwareBestSellers = "Failed to retrieve software best sellers.";
+        public const string ServiceUnavailable = "Bestsellers are currently unavailable. The service is not configured correctly. Please try again later.";
     }
 }

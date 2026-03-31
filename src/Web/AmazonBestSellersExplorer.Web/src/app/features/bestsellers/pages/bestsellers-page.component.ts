@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { DataViewModule } from 'primeng/dataview';
@@ -6,7 +7,7 @@ import { BestsellersApiService } from '../data/bestsellers-api.service';
 import { BestsellerProduct } from '../../../shared/models/bestseller-product.model';
 import { FavoritesStateService } from '../../favorites/data/favorites-state.service';
 
-type BestsellersViewState = 'favorites-loading' | 'favorites-error' | 'loading' | 'error' | 'empty' | 'success';
+type BestsellersViewState = 'favorites-loading' | 'favorites-error' | 'loading' | 'unavailable' | 'error' | 'empty' | 'success';
 
 @Component({
   selector: 'app-bestsellers-page',
@@ -42,6 +43,11 @@ type BestsellersViewState = 'favorites-loading' | 'favorites-error' | 'loading' 
         <section class="state-card">
           <h2>Loading software bestsellers</h2>
           <p>Fetching the latest Amazon Poland software bestsellers.</p>
+        </section>
+      } @else if (isUnavailable()) {
+        <section class="state-card is-error">
+          <h2>Bestsellers are currently unavailable.</h2>
+          <p>{{ errorMessage() }}</p>
         </section>
       } @else if (hasError()) {
         <section class="state-card is-error">
@@ -430,6 +436,7 @@ export class BestsellersPageComponent {
   protected readonly hasFavoritesError = computed(() => this.state() === 'favorites-error');
   protected readonly isFavoritesRetrying = this.favoritesState.loading;
   protected readonly isLoading = computed(() => this.state() === 'loading');
+  protected readonly isUnavailable = computed(() => this.state() === 'unavailable');
   protected readonly hasError = computed(() => this.state() === 'error');
   protected readonly isEmpty = computed(() => this.state() === 'empty');
   protected readonly isAuthenticated = this.authState.isAuthenticated;
@@ -507,10 +514,11 @@ export class BestsellersPageComponent {
         next: products => {
           this.products.set(products);
         },
-        error: () => {
+        error: error => {
           this.products.set([]);
-          this.state.set('error');
-          this.errorMessage.set(`We couldn't load the bestseller list right now.`);
+          const apiError = extractBestsellersError(error, `We couldn't load the bestseller list right now.`);
+          this.state.set(apiError.statusCode === 503 ? 'unavailable' : 'error');
+          this.errorMessage.set(apiError.message);
         }
       });
   }
@@ -561,4 +569,27 @@ export class BestsellersPageComponent {
   private removeFavorite(amazonProductId: string): void {
     this.favoritesState.removeFavorite(amazonProductId);
   }
+}
+
+function extractBestsellersError(error: unknown, fallbackMessage: string): { message: string; statusCode: number | null } {
+  if (error instanceof HttpErrorResponse) {
+    const payload = error.error as { errors?: unknown; detail?: unknown } | null;
+
+    if (payload && Array.isArray(payload.errors)) {
+      const firstError = payload.errors.find((item): item is string =>
+        typeof item === 'string' && item.trim().length > 0);
+
+      if (firstError) {
+        return { message: firstError, statusCode: error.status };
+      }
+    }
+
+    if (payload && typeof payload.detail === 'string' && payload.detail.trim().length > 0) {
+      return { message: payload.detail, statusCode: error.status };
+    }
+
+    return { message: fallbackMessage, statusCode: error.status };
+  }
+
+  return { message: fallbackMessage, statusCode: null };
 }
