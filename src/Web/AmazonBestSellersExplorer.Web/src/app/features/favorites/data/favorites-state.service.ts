@@ -13,6 +13,7 @@ export class FavoritesStateService {
   private readonly authState = inject(AuthStateService);
   private loadRequestVersion = 0;
   private stateCycleVersion = 0;
+  private favoritesRevision = 0;
   private activeSessionKey: string | null = null;
 
   private readonly favoritesState = signal<FavoriteProduct[]>([]);
@@ -72,19 +73,20 @@ export class FavoritesStateService {
     }
 
     const requestVersion = ++this.loadRequestVersion;
+    const favoritesRevision = this.favoritesRevision;
 
     this.loadingState.set(true);
     this.errorState.set(null);
 
     this.favoritesApi.getFavorites()
       .pipe(finalize(() => {
-        if (this.canApplyLoadResult(requestVersion, sessionKey)) {
+        if (this.canApplyLoadResult(requestVersion, sessionKey, favoritesRevision)) {
           this.loadingState.set(false);
         }
       }))
       .subscribe({
         next: favorites => {
-          if (!this.canApplyLoadResult(requestVersion, sessionKey)) {
+          if (!this.canApplyLoadResult(requestVersion, sessionKey, favoritesRevision)) {
             return;
           }
 
@@ -92,7 +94,7 @@ export class FavoritesStateService {
           this.hasLoadedState.set(true);
         },
         error: () => {
-          if (!this.canApplyLoadResult(requestVersion, sessionKey)) {
+          if (!this.canApplyLoadResult(requestVersion, sessionKey, favoritesRevision)) {
             return;
           }
 
@@ -137,6 +139,7 @@ export class FavoritesStateService {
           });
 
           this.favoritesState.set(nextFavorites);
+          this.favoritesRevision++;
           this.hasLoadedState.set(true);
         },
         error: () => {
@@ -174,6 +177,7 @@ export class FavoritesStateService {
 
           this.favoritesState.update(products =>
             products.filter(product => product.amazonProductId !== amazonProductId));
+          this.favoritesRevision++;
           this.hasLoadedState.set(true);
         },
         error: () => {
@@ -198,6 +202,7 @@ export class FavoritesStateService {
     this.activeSessionKey = null;
     this.loadRequestVersion++;
     this.stateCycleVersion++;
+    this.favoritesRevision++;
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
@@ -209,6 +214,7 @@ export class FavoritesStateService {
     this.activeSessionKey = sessionKey;
     this.loadRequestVersion++;
     this.stateCycleVersion++;
+    this.favoritesRevision++;
     this.favoritesState.set([]);
     this.loadingState.set(false);
     this.errorState.set(null);
@@ -216,8 +222,9 @@ export class FavoritesStateService {
     this.hasLoadedState.set(false);
   }
 
-  private canApplyLoadResult(requestVersion: number, sessionKey: string): boolean {
+  private canApplyLoadResult(requestVersion: number, sessionKey: string, favoritesRevision: number): boolean {
     return requestVersion === this.loadRequestVersion
+      && favoritesRevision === this.favoritesRevision
       && this.getCurrentSessionKey() === sessionKey;
   }
 
