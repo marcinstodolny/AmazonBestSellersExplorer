@@ -42,7 +42,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                 <article class="product-card">
                   <button
                     type="button"
-                    class="favorite-toggle-button"
+                    class="favorite-toggle-button is-active"
                     (click)="remove(product.amazonProductId)"
                     [disabled]="favoritesState.isOperationInProgress(product.amazonProductId)"
                     aria-label="Remove from favorites"
@@ -236,8 +236,14 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     .favorite-toggle-button svg {
       width: 1.2rem;
       height: 1.2rem;
-      fill: currentColor;
       display: block;
+    }
+
+    .favorite-toggle-button path {
+      fill: currentColor;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linejoin: round;
     }
 
     .favorite-toggle-button:hover:not(:disabled) {
