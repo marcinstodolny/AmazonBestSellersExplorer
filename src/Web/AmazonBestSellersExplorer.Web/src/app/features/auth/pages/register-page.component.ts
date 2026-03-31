@@ -14,9 +14,9 @@ import { RegisterUserRequest } from '../models/register-user-request.model';
   template: `
     <section class="auth-page">
       <header class="auth-header">
-        <span class="auth-kicker">Auth</span>
-        <h1>Register</h1>
-        <p>Create a new account and immediately store the JWT returned by the backend.</p>
+        <span class="auth-kicker">Account</span>
+        <h1>Create your account</h1>
+        <p>Create an account to save software products and build your personal favorites list.</p>
       </header>
 
       <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
@@ -49,10 +49,10 @@ import { RegisterUserRequest } from '../models/register-user-request.model';
 
         <div class="actions">
           <button type="submit" [disabled]="isSubmitting()">
-            {{ isSubmitting() ? 'Creating account...' : 'Register' }}
+            {{ isSubmitting() ? 'Creating account...' : 'Create account' }}
           </button>
 
-          <a routerLink="/login">Already registered? Login</a>
+          <a routerLink="/login">Already have an account? Sign in</a>
         </div>
       </form>
     </section>
@@ -252,7 +252,7 @@ export class RegisterPageComponent {
           void this.router.navigateByUrl('/bestsellers');
         },
         error: error => {
-          this.errorMessages.set(extractApiErrors(error, 'Unable to register user.'));
+          this.errorMessages.set(extractApiErrors(error, `We couldn't create your account.`));
         }
       });
   }

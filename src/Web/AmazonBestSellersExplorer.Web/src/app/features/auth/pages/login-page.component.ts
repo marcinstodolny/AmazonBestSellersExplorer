@@ -14,9 +14,9 @@ import { LoginUserRequest } from '../models/login-user-request.model';
   template: `
     <section class="auth-page">
       <header class="auth-header">
-        <span class="auth-kicker">Auth</span>
-        <h1>Login</h1>
-        <p>Use your existing account to get a JWT and access favorites.</p>
+        <span class="auth-kicker">Account</span>
+        <h1>Sign in</h1>
+        <p>Sign in to access your saved products and keep your favorites in sync.</p>
       </header>
 
       <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
@@ -38,7 +38,7 @@ import { LoginUserRequest } from '../models/login-user-request.model';
 
         @if (errorMessages().length > 0) {
           <section class="error-panel" aria-live="polite">
-            <h2>Login failed</h2>
+            <h2>Sign-in failed</h2>
             <ul>
               @for (message of errorMessages(); track message) {
                 <li>{{ message }}</li>
@@ -49,10 +49,10 @@ import { LoginUserRequest } from '../models/login-user-request.model';
 
         <div class="actions">
           <button type="submit" [disabled]="isSubmitting()">
-            {{ isSubmitting() ? 'Signing in...' : 'Login' }}
+            {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
           </button>
 
-          <a routerLink="/register">Need an account? Register</a>
+          <a routerLink="/register">Need an account? Create one</a>
         </div>
       </form>
     </section>
@@ -239,7 +239,7 @@ export class LoginPageComponent {
           void this.router.navigateByUrl(targetUrl);
         },
         error: error => {
-          this.errorMessages.set(extractApiErrors(error, 'Unable to log in.'));
+          this.errorMessages.set(extractApiErrors(error, `We couldn't sign you in.`));
         }
       });
   }

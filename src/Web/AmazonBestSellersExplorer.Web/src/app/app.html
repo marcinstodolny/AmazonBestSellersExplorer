@@ -1,7 +1,7 @@
 <div class="app-shell">
   <header class="shell-header">
     <div class="brand">
-      <span class="brand-kicker">Angular Frontend</span>
+      <span class="brand-kicker">Software bestsellers</span>
       <a routerLink="/bestsellers" class="brand-title">AmazonBestSellersExplorer</a>
     </div>
 
@@ -11,20 +11,20 @@
         <a routerLink="/favorites" routerLinkActive="is-active">Favorites</a>
         <button type="button" class="nav-action" (click)="logout()">Logout</button>
       } @else {
-        <a routerLink="/login" routerLinkActive="is-active">Login</a>
-        <a routerLink="/register" routerLinkActive="is-active">Register</a>
+        <a routerLink="/login" routerLinkActive="is-active">Sign in</a>
+        <a routerLink="/register" routerLinkActive="is-active">Create account</a>
       }
     </nav>
 
     <div class="shell-status">
       <span class="status-chip" [class.is-authenticated]="isAuthenticated()">
         @if (isAuthenticated()) {
-          Authenticated
+          Signed in
           @if (username()) {
             · {{ username() }}
           }
         } @else {
-          Anonymous
+          Guest
         }
       </span>
     </div>
@@ -32,11 +32,11 @@
 
   <main class="shell-main">
     <section class="shell-intro">
-      <p class="intro-kicker">Frontend Shell</p>
-      <h1>Standalone Angular shell ready for auth, bestsellers, and favorites.</h1>
+      <p class="intro-kicker">Discover software</p>
+      <h1>Browse Amazon software bestsellers and save the products worth revisiting.</h1>
       <p class="intro-copy">
-        Routing, auth state powered by Signals, the HTTP client, and the JWT interceptor are already wired.
-        API base URL: <code>{{ apiBaseUrl() }}</code>
+        Explore popular software products available on Amazon Poland, then sign in to build and manage your
+        personal favorites list.
       </p>
     </section>
 

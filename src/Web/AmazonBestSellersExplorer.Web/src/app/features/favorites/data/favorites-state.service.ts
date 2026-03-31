@@ -99,7 +99,7 @@ export class FavoritesStateService {
           }
 
           this.favoritesState.set([]);
-          this.errorState.set('The backend did not return favorite products.');
+          this.errorState.set(`We couldn't load your saved products right now.`);
           this.hasLoadedState.set(true);
         }
       });

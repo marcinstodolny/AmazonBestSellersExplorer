@@ -10,29 +10,29 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     <section class="page-shell">
       <header class="page-header">
         <div>
-          <span class="page-kicker">Private API</span>
+          <span class="page-kicker">Saved for later</span>
           <h1>Your favorites</h1>
         </div>
 
         <button type="button" class="refresh-button" (click)="reload()" [disabled]="isLoading() || isRemoving()">
-          {{ isLoading() ? 'Loading...' : 'Refresh' }}
+          {{ isLoading() ? 'Refreshing...' : 'Refresh list' }}
         </button>
       </header>
 
       @if (isLoading()) {
         <section class="state-card">
-          <h2>Loading favorites</h2>
-          <p>The frontend is loading data from the protected endpoint <code>GET /api/favorites</code>.</p>
+          <h2>Loading your favorites</h2>
+          <p>Fetching the products you saved to revisit later.</p>
         </section>
       } @else if (hasError()) {
         <section class="state-card is-error">
-          <h2>Unable to load favorites</h2>
+          <h2>Couldn't load your favorites</h2>
           <p>{{ errorMessage() }}</p>
         </section>
       } @else if (isEmpty()) {
         <section class="state-card">
-          <h2>No favorites yet</h2>
-          <p>Your favorites list is empty. Saved products will appear here.</p>
+          <h2>You haven't saved any favorites yet</h2>
+          <p>Products saved from the bestseller list will appear here.</p>
         </section>
       } @else {
         <p-dataview [value]="products()" layout="list">
@@ -44,7 +44,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                     @if (product.imageUrl) {
                       <img [src]="product.imageUrl" [alt]="product.title" loading="lazy" />
                     } @else {
-                      <div class="image-fallback">No image</div>
+                      <div class="image-fallback">Image unavailable</div>
                     }
                   </div>
 
@@ -283,7 +283,7 @@ export class FavoritesPageComponent {
   protected readonly favoritesState = inject(FavoritesStateService);
 
   protected readonly products = this.favoritesState.favorites;
-  protected readonly errorMessage = computed(() => this.favoritesState.error() ?? 'Unable to load favorites.');
+  protected readonly errorMessage = computed(() => this.favoritesState.error() ?? `We couldn't load your favorites right now.`);
   protected readonly isLoading = this.favoritesState.loading;
   protected readonly hasError = computed(() => this.favoritesState.error() !== null);
   protected readonly isEmpty = computed(() =>

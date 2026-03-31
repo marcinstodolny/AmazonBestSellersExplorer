@@ -42,22 +42,24 @@ describe('AppComponent', () => {
   it('renders anonymous navigation when user is signed out', async () => {
     const { fixture } = await createComponent();
     const compiled = fixture.nativeElement as HTMLElement;
+    const navigationLinks = Array.from(compiled.querySelectorAll('.shell-nav a')).map(link => link.textContent?.trim());
 
-    expect(compiled.textContent).toContain('Bestsellers');
-    expect(compiled.textContent).toContain('Login');
-    expect(compiled.textContent).toContain('Register');
-    expect(compiled.textContent).toContain('Anonymous');
-    expect(compiled.textContent).not.toContain('Favorites');
+    expect(navigationLinks).toContain('Bestsellers');
+    expect(navigationLinks).toContain('Sign in');
+    expect(navigationLinks).toContain('Create account');
+    expect(navigationLinks).not.toContain('Favorites');
+    expect(compiled.textContent).toContain('Guest');
   });
 
   it('renders authenticated shell details when user is signed in', async () => {
     const { fixture } = await createComponent(true, 'marcin123');
     const compiled = fixture.nativeElement as HTMLElement;
+    const navigationLinks = Array.from(compiled.querySelectorAll('.shell-nav a')).map(link => link.textContent?.trim());
 
-    expect(compiled.textContent).toContain('Bestsellers');
-    expect(compiled.textContent).toContain('Favorites');
+    expect(navigationLinks).toContain('Bestsellers');
+    expect(navigationLinks).toContain('Favorites');
     expect(compiled.textContent).toContain('Logout');
-    expect(compiled.textContent).toContain('Authenticated');
+    expect(compiled.textContent).toContain('Signed in');
     expect(compiled.textContent).toContain('marcin123');
   });
 
