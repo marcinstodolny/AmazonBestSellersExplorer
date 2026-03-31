@@ -132,10 +132,11 @@
 
 .intro-copy {
   margin: 0;
-  max-width: 54rem;
+  max-width: 58rem;
   color: #4c5b67;
   font-size: 1rem;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .intro-copy code {
