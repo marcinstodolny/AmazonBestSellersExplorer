@@ -47,6 +47,13 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
             new RegisterUserRequest(username, password));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = await response.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemDetails.Status);
+        Assert.Equal("Request validation failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains("Username is already taken.", problemDetails.Detail);
     }
 
     [Fact]
@@ -82,6 +89,13 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
             new LoginUserRequest(username, "WrongPassword1"));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var problemDetails = await response.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.Unauthorized, problemDetails.Status);
+        Assert.Equal("Authentication failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains("Invalid username or password.", problemDetails.Detail);
     }
 
 }

@@ -27,6 +27,16 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     }
 
     [Fact]
+    public async Task AddFavorite_ShouldReturn401_WithoutToken()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/favorites",
+            CreateFavoriteRequest("B09UNAUTH001"));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task AddFavorite_ShouldWork_ForAuthorizedUser()
     {
         var client = await fixture.CreateAuthenticatedClientAsync();
@@ -49,6 +59,13 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
 
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+
+        var problemDetails = await secondResponse.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemDetails.Status);
+        Assert.Equal("Favorites request failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains("Favorite product already exists.", problemDetails.Detail);
     }
 
     [Fact]
@@ -91,6 +108,14 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
         Assert.NotNull(body);
         Assert.Empty(body);
+    }
+
+    [Fact]
+    public async Task RemoveFavorite_ShouldReturn401_WithoutToken()
+    {
+        var response = await _client.DeleteAsync("/api/favorites/B09UNAUTH002");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     private static AddFavoriteProductRequest CreateFavoriteRequest(string amazonProductId)
