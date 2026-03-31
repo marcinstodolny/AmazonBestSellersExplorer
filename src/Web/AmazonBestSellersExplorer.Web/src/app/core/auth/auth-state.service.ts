@@ -13,6 +13,7 @@ export class AuthStateService {
   readonly session = computed(() => this.sessionState());
   readonly accessToken = computed(() => this.session()?.accessToken ?? null);
   readonly isAuthenticated = computed(() => this.session() !== null);
+  readonly username = computed(() => this.extractUsername(this.accessToken()));
 
   constructor() {
     this.revalidateSession();
@@ -102,6 +103,54 @@ export class AuthStateService {
     const expirationTime = Date.parse(session.expiresAtUtc);
 
     return !Number.isNaN(expirationTime) && expirationTime > Date.now();
+  }
+
+  private extractUsername(accessToken: string | null): string | null {
+    if (accessToken === null) {
+      return null;
+    }
+
+    const payload = this.readJwtPayload(accessToken);
+
+    if (payload === null) {
+      return null;
+    }
+
+    const username =
+      this.readStringClaim(payload, 'unique_name')
+      ?? this.readStringClaim(payload, 'name')
+      ?? this.readStringClaim(payload, 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name');
+
+    return username?.trim() || null;
+  }
+
+  private readJwtPayload(accessToken: string): Record<string, unknown> | null {
+    const tokenParts = accessToken.split('.');
+
+    if (tokenParts.length !== 3) {
+      return null;
+    }
+
+    try {
+      const payload = tokenParts[1]
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(Math.ceil(tokenParts[1].length / 4) * 4, '=');
+
+      const parsedPayload = JSON.parse(atob(payload)) as unknown;
+
+      return typeof parsedPayload === 'object' && parsedPayload !== null
+        ? parsedPayload as Record<string, unknown>
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private readStringClaim(payload: Record<string, unknown>, claimName: string): string | null {
+    const claimValue = payload[claimName];
+
+    return typeof claimValue === 'string' ? claimValue : null;
   }
 
   private scheduleExpiration(session: AuthSession): void {

@@ -22,7 +22,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       @if (isLoading()) {
         <section class="state-card">
           <h2>Loading favorites</h2>
-          <p>Frontend pobiera dane z chronionego endpointu <code>GET /api/favorites</code>.</p>
+          <p>The frontend is loading data from the protected endpoint <code>GET /api/favorites</code>.</p>
         </section>
       } @else if (hasError()) {
         <section class="state-card is-error">
@@ -70,7 +70,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Zobacz w Amazon
+                        View on Amazon
                       </a>
 
                       <button
@@ -79,7 +79,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                         (click)="remove(product.amazonProductId)"
                         [disabled]="favoritesState.isOperationInProgress(product.amazonProductId)"
                       >
-                        {{ favoritesState.isOperationInProgress(product.amazonProductId) ? 'Removing...' : 'Usuń z ulubionych' }}
+                        {{ favoritesState.isOperationInProgress(product.amazonProductId) ? 'Removing...' : 'Remove from favorites' }}
                       </button>
                     </div>
                   </div>

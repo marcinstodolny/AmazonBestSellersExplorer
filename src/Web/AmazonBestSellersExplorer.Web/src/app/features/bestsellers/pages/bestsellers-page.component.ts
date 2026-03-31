@@ -28,7 +28,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       @if (isLoading()) {
         <section class="state-card">
           <h2>Loading bestseller list</h2>
-          <p>Frontend pobiera dane z backendowego endpointu <code>GET /api/bestsellers</code>.</p>
+          <p>The frontend is loading data from the backend endpoint <code>GET /api/bestsellers</code>.</p>
         </section>
       } @else if (hasError()) {
         <section class="state-card is-error">
@@ -38,7 +38,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       } @else if (isEmpty()) {
         <section class="state-card">
           <h2>No bestsellers available</h2>
-          <p>Backend zwrócił pustą listę produktów dla kategorii Software.</p>
+          <p>The backend returned an empty product list for the Software category.</p>
         </section>
       } @else {
         <p-dataview [value]="products()" layout="list">
@@ -75,7 +75,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Zobacz w Amazon
+                      View on Amazon
                     </a>
 
                     @if (isAuthenticated()) {
@@ -89,9 +89,9 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                         @if (isFavoriteOperationInProgress(product.amazonProductId)) {
                           Working...
                         } @else if (isFavorite(product.amazonProductId)) {
-                          Usuń z ulubionych
+                          Remove from favorites
                         } @else {
-                          Dodaj do ulubionych
+                          Add to favorites
                         }
                       </button>
                     }
@@ -381,7 +381,7 @@ export class BestsellersPageComponent {
         error: () => {
           this.products.set([]);
           this.state.set('error');
-          this.errorMessage.set('Backend did not return bestseller data.');
+          this.errorMessage.set('The backend did not return bestseller data.');
         }
       });
   }

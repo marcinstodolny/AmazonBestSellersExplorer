@@ -114,6 +114,19 @@ import { RegisterUserRequest } from '../models/register-user-request.model';
       border-radius: 0.85rem;
       padding: 0.9rem 1rem;
       background: #ffffff;
+      color: #132028;
+      caret-color: #132028;
+      -webkit-text-fill-color: #132028;
+    }
+
+    .field input::placeholder {
+      color: #7b8790;
+    }
+
+    .field input:-webkit-autofill,
+    .field input:-webkit-autofill:hover,
+    .field input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #132028;
     }
 
     .field small {

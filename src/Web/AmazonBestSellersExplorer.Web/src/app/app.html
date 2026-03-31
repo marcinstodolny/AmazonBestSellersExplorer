@@ -18,18 +18,25 @@
 
     <div class="shell-status">
       <span class="status-chip" [class.is-authenticated]="isAuthenticated()">
-        {{ isAuthenticated() ? 'Authenticated' : 'Anonymous' }}
+        @if (isAuthenticated()) {
+          Authenticated
+          @if (username()) {
+            · {{ username() }}
+          }
+        } @else {
+          Anonymous
+        }
       </span>
     </div>
   </header>
 
   <main class="shell-main">
     <section class="shell-intro">
-      <p class="intro-kicker">Frontend skeleton</p>
-      <h1>Standalone Angular shell gotowy pod auth, bestsellers i favorites.</h1>
+      <p class="intro-kicker">Frontend Shell</p>
+      <h1>Standalone Angular shell ready for auth, bestsellers, and favorites.</h1>
       <p class="intro-copy">
-        Routing, auth state na Signals, klient HTTP i interceptor JWT są już spięte.
-        Bazowy adres API: <code>{{ apiBaseUrl() }}</code>
+        Routing, auth state powered by Signals, the HTTP client, and the JWT interceptor are already wired.
+        API base URL: <code>{{ apiBaseUrl() }}</code>
       </p>
     </section>
 

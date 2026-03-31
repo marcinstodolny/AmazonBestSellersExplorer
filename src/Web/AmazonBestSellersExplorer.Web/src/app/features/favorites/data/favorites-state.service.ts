@@ -99,7 +99,7 @@ export class FavoritesStateService {
           }
 
           this.favoritesState.set([]);
-          this.errorState.set('Backend did not return favorite products.');
+          this.errorState.set('The backend did not return favorite products.');
           this.hasLoadedState.set(true);
         }
       });

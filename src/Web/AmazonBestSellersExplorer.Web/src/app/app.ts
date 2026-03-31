@@ -16,6 +16,7 @@ export class AppComponent {
   private readonly router = inject(Router);
 
   protected readonly isAuthenticated = this.authState.isAuthenticated;
+  protected readonly username = this.authState.username;
   protected readonly apiBaseUrl = computed(() => apiConfig.baseUrl);
 
   protected logout(): void {
