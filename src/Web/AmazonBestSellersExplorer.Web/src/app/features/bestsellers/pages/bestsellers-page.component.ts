@@ -16,7 +16,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     <section class="page-shell">
       <header class="page-header">
         <div>
-          <span class="page-kicker">Public catalog</span>
+          <span class="page-kicker">Software bestsellers</span>
           <h1>Amazon Software Bestsellers</h1>
         </div>
 
@@ -75,32 +75,34 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
                       </div>
                     </dl>
 
-                    <a
-                      class="amazon-link"
-                      [href]="product.productUrl"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on Amazon
-                    </a>
-
-                    @if (isAuthenticated()) {
-                      <button
-                        type="button"
-                        class="favorite-button"
-                        [class.is-active]="isFavorite(product.amazonProductId)"
-                        [disabled]="isFavoriteOperationInProgress(product.amazonProductId)"
-                        (click)="toggleFavorite(product)"
+                    <div class="product-actions">
+                      <a
+                        class="amazon-link"
+                        [href]="product.productUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        @if (isFavoriteOperationInProgress(product.amazonProductId)) {
-                          Updating...
-                        } @else if (isFavorite(product.amazonProductId)) {
-                          Remove from favorites
-                        } @else {
-                          Add to favorites
-                        }
-                      </button>
-                    }
+                        View on Amazon
+                      </a>
+
+                      @if (isAuthenticated()) {
+                        <button
+                          type="button"
+                          class="favorite-button"
+                          [class.is-active]="isFavorite(product.amazonProductId)"
+                          [disabled]="isFavoriteOperationInProgress(product.amazonProductId)"
+                          (click)="toggleFavorite(product)"
+                        >
+                          @if (isFavoriteOperationInProgress(product.amazonProductId)) {
+                            Updating...
+                          } @else if (isFavorite(product.amazonProductId)) {
+                            Remove from favorites
+                          } @else {
+                            Add to favorites
+                          }
+                        </button>
+                      }
+                    </div>
                   </div>
                 </article>
               }
@@ -179,7 +181,7 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
 
     p {
       margin: 0;
-      color: #4c5b67;
+      color: #3c4b57;
       font-size: 1rem;
       line-height: 1.6;
     }
@@ -202,13 +204,13 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
       border-radius: 1.25rem;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(19, 32, 40, 0.08);
-      box-shadow: 0 12px 34px rgba(19, 32, 40, 0.08);
+      border: 1px solid rgba(19, 32, 40, 0.1);
+      box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
     }
 
     .product-card.is-favorite {
       border-color: rgba(24, 64, 179, 0.28);
-      box-shadow: 0 16px 38px rgba(24, 64, 179, 0.12);
+      box-shadow: 0 12px 28px rgba(24, 64, 179, 0.1);
     }
 
     .product-media {
@@ -228,26 +230,34 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     }
 
     .image-fallback {
-      color: #5d6d78;
+      color: #43525d;
       font-size: 0.95rem;
       font-weight: 600;
     }
 
     .product-body {
       display: grid;
-      gap: 1rem;
+      gap: 1.1rem;
       padding: 1.25rem;
       align-content: start;
     }
 
     .product-body h2 {
-      font-size: 1.2rem;
-      line-height: 1.25;
+      color: #132028;
+      font-size: 1.12rem;
+      font-weight: 800;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(1.4em * 2);
     }
 
     .product-metrics {
       display: grid;
-      gap: 0.85rem;
+      gap: 0.9rem;
       margin: 0;
     }
 
@@ -265,22 +275,31 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     }
 
     .product-metrics dt {
-      color: #5d6d78;
+      color: #586874;
+      font-size: 0.95rem;
       font-weight: 600;
     }
 
     .product-metrics dd {
       color: #132028;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 800;
       text-align: right;
     }
 
+    .product-actions {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: auto;
+    }
+
     .amazon-link {
-      width: fit-content;
+      width: 100%;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       border-radius: 999px;
-      padding: 0.8rem 1rem;
+      padding: 0.82rem 1rem;
       background: #132028;
       color: #ffffff;
       text-decoration: none;
@@ -294,25 +313,32 @@ type BestsellersViewState = 'loading' | 'error' | 'empty' | 'success';
     }
 
     .favorite-button {
-      width: fit-content;
-      border: 0;
+      width: 100%;
+      border: 1px solid rgba(21, 48, 141, 0.22);
       border-radius: 999px;
-      padding: 0.8rem 1rem;
-      background: rgba(24, 64, 179, 0.12);
-      color: #15308d;
+      padding: 0.82rem 1rem;
+      background: rgba(255, 255, 255, 0.96);
+      color: #163685;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease;
+      transition:
+        transform 160ms ease,
+        opacity 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease;
     }
 
     .favorite-button.is-active {
-      background: rgba(24, 64, 179, 0.18);
+      background: rgba(24, 64, 179, 0.1);
+      border-color: rgba(24, 64, 179, 0.3);
       color: #102a78;
     }
 
     .favorite-button:hover:not(:disabled) {
       transform: translateY(-1px);
-      opacity: 0.92;
+      background: rgba(24, 64, 179, 0.08);
+      border-color: rgba(24, 64, 179, 0.32);
     }
 
     .favorite-button:disabled {
@@ -398,7 +424,7 @@ export class BestsellersPageComponent {
         error: () => {
           this.products.set([]);
           this.state.set('error');
-          this.errorMessage.set(`We couldn't load bestseller data right now.`);
+          this.errorMessage.set(`We couldn't load the bestseller list right now.`);
         }
       });
   }

@@ -162,7 +162,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
 
     p {
       margin: 0;
-      color: #4c5b67;
+      color: #3c4b57;
       font-size: 1rem;
       line-height: 1.6;
     }
@@ -185,8 +185,8 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       border-radius: 1.25rem;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(19, 32, 40, 0.08);
-      box-shadow: 0 12px 34px rgba(19, 32, 40, 0.08);
+      border: 1px solid rgba(19, 32, 40, 0.1);
+      box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
     }
 
     .product-media {
@@ -206,26 +206,34 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     }
 
     .image-fallback {
-      color: #5d6d78;
+      color: #43525d;
       font-size: 0.95rem;
       font-weight: 600;
     }
 
     .product-body {
       display: grid;
-      gap: 1rem;
+      gap: 1.1rem;
       padding: 1.25rem;
       align-content: start;
     }
 
     .product-body h2 {
-      font-size: 1.2rem;
-      line-height: 1.25;
+      color: #132028;
+      font-size: 1.12rem;
+      font-weight: 800;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(1.4em * 2);
     }
 
     .product-metrics {
       display: grid;
-      gap: 0.85rem;
+      gap: 0.9rem;
       margin: 0;
     }
 
@@ -243,28 +251,31 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     }
 
     .product-metrics dt {
-      color: #5d6d78;
+      color: #586874;
+      font-size: 0.95rem;
       font-weight: 600;
     }
 
     .product-metrics dd {
       color: #132028;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 800;
       text-align: right;
     }
 
     .product-actions {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
       gap: 0.75rem;
+      margin-top: auto;
     }
 
     .amazon-link {
-      width: fit-content;
+      width: 100%;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       border-radius: 999px;
-      padding: 0.8rem 1rem;
+      padding: 0.82rem 1rem;
       background: #132028;
       color: #ffffff;
       text-decoration: none;
@@ -275,6 +286,28 @@ import { FavoritesStateService } from '../data/favorites-state.service';
     .amazon-link:hover {
       transform: translateY(-1px);
       opacity: 0.92;
+    }
+
+    .remove-button {
+      width: 100%;
+      border: 1px solid rgba(143, 29, 53, 0.22);
+      border-radius: 999px;
+      padding: 0.82rem 1rem;
+      background: rgba(255, 255, 255, 0.96);
+      color: #7d1730;
+      font-weight: 700;
+      transition:
+        transform 160ms ease,
+        opacity 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease;
+    }
+
+    .remove-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(143, 29, 53, 0.06);
+      border-color: rgba(143, 29, 53, 0.3);
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
