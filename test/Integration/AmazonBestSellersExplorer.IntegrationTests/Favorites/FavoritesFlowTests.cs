@@ -4,9 +4,10 @@ using System.Net.Http.Json;
 using AmazonBestSellersExplorer.IntegrationTests.Infrastructure;
 using Xunit;
 
-namespace AmazonBestSellersExplorer.IntegrationTests.AuthAndFavorites;
+namespace AmazonBestSellersExplorer.IntegrationTests.Favorites;
 
-public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFactory factory)
+[Collection(IntegrationTestCollection.Name)]
+public sealed class FavoritesFlowTests(IntegrationTestWebApplicationFactory factory)
     : IClassFixture<IntegrationTestWebApplicationFactory>, IAsyncLifetime
 {
     private readonly IntegrationTestWebApplicationFactory _factory = factory;
@@ -21,44 +22,11 @@ public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFacto
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public async Task Register_ShouldReturn200AndToken()
+    public async Task GetFavorites_ShouldReturn401_WithoutToken()
     {
-        var response = await _client.PostAsJsonAsync(
-            "/api/auth/register",
-            new RegisterUserRequest(
-                Username: GenerateUsername(),
-                Password: "StrongPassword1"));
+        var response = await _client.GetAsync("/api/favorites");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-
-        Assert.NotNull(body);
-        Assert.False(string.IsNullOrWhiteSpace(body.AccessToken));
-        Assert.True(body.ExpiresAtUtc > DateTime.UtcNow);
-    }
-
-    [Fact]
-    public async Task Login_ShouldReturn200AndToken_ForValidCredentials()
-    {
-        var username = GenerateUsername();
-        const string password = "StrongPassword1";
-
-        await RegisterAsync(username, password);
-
-        var response = await _client.PostAsJsonAsync(
-            "/api/auth/login",
-            new LoginUserRequest(
-                Username: username,
-                Password: password));
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-
-        Assert.NotNull(body);
-        Assert.False(string.IsNullOrWhiteSpace(body.AccessToken));
-        Assert.True(body.ExpiresAtUtc > DateTime.UtcNow);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
@@ -74,13 +42,26 @@ public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFacto
     }
 
     [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenProductAlreadyExists()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest("B09TEST002");
+
+        var firstResponse = await client.PostAsJsonAsync("/api/favorites", request);
+        var secondResponse = await client.PostAsJsonAsync("/api/favorites", request);
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task GetFavorites_ShouldReturnSavedProduct()
     {
         var client = await CreateAuthenticatedClientAsync();
 
         await client.PostAsJsonAsync(
             "/api/favorites",
-            CreateFavoriteRequest("B09TEST002"));
+            CreateFavoriteRequest("B09TEST003"));
 
         var response = await client.GetAsync("/api/favorites");
 
@@ -90,7 +71,7 @@ public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFacto
 
         Assert.NotNull(body);
         Assert.Single(body);
-        Assert.Equal("B09TEST002", body[0].AmazonProductId);
+        Assert.Equal("B09TEST003", body[0].AmazonProductId);
         Assert.Equal("Windows 11 Pro", body[0].Title);
     }
 
@@ -101,9 +82,9 @@ public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFacto
 
         await client.PostAsJsonAsync(
             "/api/favorites",
-            CreateFavoriteRequest("B09TEST003"));
+            CreateFavoriteRequest("B09TEST004"));
 
-        var deleteResponse = await client.DeleteAsync("/api/favorites/B09TEST003");
+        var deleteResponse = await client.DeleteAsync("/api/favorites/B09TEST004");
 
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
@@ -115,21 +96,16 @@ public sealed class AuthAndFavoritesFlowTests(IntegrationTestWebApplicationFacto
         Assert.Empty(body);
     }
 
-    private async Task RegisterAsync(string username, string password)
-    {
-        var response = await _client.PostAsJsonAsync(
-            "/api/auth/register",
-            new RegisterUserRequest(username, password));
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
     {
         var username = GenerateUsername();
         const string password = "StrongPassword1";
 
-        await RegisterAsync(username, password);
+        var registerResponse = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new RegisterUserRequest(username, password));
+
+        Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
 
         var loginResponse = await _client.PostAsJsonAsync(
             "/api/auth/login",

@@ -22,7 +22,4 @@
   <Folder Name="/test/Integration/">
     <Project Path="test/Integration/AmazonBestSellersExplorer.IntegrationTests/AmazonBestSellersExplorer.IntegrationTests.csproj" Id="424ad4ed-286d-4f84-9d29-67aff322f182" />
   </Folder>
-  <Folder Name="/test/Unit/">
-    <Project Path="test/Unit/AmazonBestSellersExplorer.UnitTests/AmazonBestSellersExplorer.UnitTests.csproj" Id="23ee7a40-2f6a-40cb-b8d3-1ae42855b004" />
-  </Folder>
 </Solution>
