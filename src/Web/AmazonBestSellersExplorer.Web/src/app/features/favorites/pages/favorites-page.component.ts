@@ -35,7 +35,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
           <p>Products saved from the bestseller list will appear here.</p>
         </section>
       } @else {
-        <p-dataview [value]="products()" layout="list">
+        <p-dataview class="catalog-view" [value]="products()" layout="list">
           <ng-template #list let-items>
             <div class="products-grid">
               @for (product of items; track product.amazonProductId) {
@@ -49,7 +49,7 @@ import { FavoritesStateService } from '../data/favorites-state.service';
                   </div>
 
                   <div class="product-body">
-                    <h2>{{ product.title }}</h2>
+                    <h2 [attr.title]="product.title">{{ product.title }}</h2>
 
                     <dl class="product-metrics">
                       <div>
@@ -177,6 +177,20 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1rem;
+      align-items: start;
+    }
+
+    :host ::ng-deep .catalog-view,
+    :host ::ng-deep .catalog-view .p-dataview,
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    :host ::ng-deep .catalog-view .p-dataview-content {
+      padding: 0;
+      border-radius: 0;
     }
 
     .product-card {
@@ -189,13 +203,12 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
     }
 
-    .product-media {
-      background:
-        linear-gradient(180deg, rgba(24, 64, 179, 0.08), rgba(19, 94, 70, 0.12)),
-        #f4f6f7;
+.product-media {
+      background: #ffffff;
       display: grid;
       place-items: center;
       overflow: hidden;
+      padding: 10px;
     }
 
     .product-media img {
@@ -209,6 +222,10 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       color: #43525d;
       font-size: 0.95rem;
       font-weight: 600;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
     }
 
     .product-body {
