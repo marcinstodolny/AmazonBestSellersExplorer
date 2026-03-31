@@ -69,6 +69,63 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     }
 
     [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenAmazonProductIdExceedsMaximumLength()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest(new string('A', 65));
+
+        var response = await client.PostAsJsonAsync("/api/favorites", request);
+
+        await AssertFavoriteValidationErrorAsync(
+            response,
+            "Amazon product id must not exceed 64 characters.");
+    }
+
+    [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenPriceIsNegative()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest("B09TESTNEG1", price: -1m);
+
+        var response = await client.PostAsJsonAsync("/api/favorites", request);
+
+        await AssertFavoriteValidationErrorAsync(response, "Price cannot be negative.");
+    }
+
+    [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenRatingIsOutOfRange()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest("B09TESTNEG2", rating: 7);
+
+        var response = await client.PostAsJsonAsync("/api/favorites", request);
+
+        await AssertFavoriteValidationErrorAsync(response, "Rating must be between 0 and 5.");
+    }
+
+    [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenProductUrlIsMalformed()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest("B09TESTNEG3", productUrl: "not-a-url");
+
+        var response = await client.PostAsJsonAsync("/api/favorites", request);
+
+        await AssertFavoriteValidationErrorAsync(response, "Product URL must be a valid absolute URL.");
+    }
+
+    [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenImageUrlIsMalformed()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+        var request = CreateFavoriteRequest("B09TESTNEG4", imageUrl: "invalid-image");
+
+        var response = await client.PostAsJsonAsync("/api/favorites", request);
+
+        await AssertFavoriteValidationErrorAsync(response, "Image URL must be a valid absolute URL.");
+    }
+
+    [Fact]
     public async Task GetFavorites_ShouldReturnSavedProduct()
     {
         var client = await fixture.CreateAuthenticatedClientAsync();
@@ -118,15 +175,35 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    private static AddFavoriteProductRequest CreateFavoriteRequest(string amazonProductId)
+    private static AddFavoriteProductRequest CreateFavoriteRequest(
+        string amazonProductId,
+        decimal? price = 699.99m,
+        double? rating = 4.7,
+        string productUrl = "",
+        string? imageUrl = "")
     {
         return new AddFavoriteProductRequest(
             AmazonProductId: amazonProductId,
             Title: "Windows 11 Pro",
-            Price: 699.99m,
-            Rating: 4.7,
-            ProductUrl: "https://www.amazon.pl/dp/" + amazonProductId,
-            ImageUrl: "https://images.example.com/" + amazonProductId + ".jpg");
+            Price: price,
+            Rating: rating,
+            ProductUrl: string.IsNullOrWhiteSpace(productUrl)
+                ? "https://www.amazon.pl/dp/" + amazonProductId
+                : productUrl,
+            ImageUrl: string.IsNullOrWhiteSpace(imageUrl)
+                ? "https://images.example.com/" + amazonProductId + ".jpg"
+                : imageUrl);
     }
 
+    private static async Task AssertFavoriteValidationErrorAsync(HttpResponseMessage response, string expectedError)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = await response.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemDetails.Status);
+        Assert.Equal("Favorites request failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains(expectedError, problemDetails.Detail);
+    }
 }

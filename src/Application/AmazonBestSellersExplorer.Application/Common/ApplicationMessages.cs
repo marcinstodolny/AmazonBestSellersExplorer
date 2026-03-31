@@ -24,6 +24,13 @@ public static class ApplicationMessages
         public const string AmazonProductIdRequired = "Amazon product id is required.";
         public const string TitleRequired = "Title is required.";
         public const string ProductUrlRequired = "Product URL is required.";
+        public const string PriceMustNotBeNegative = "Price cannot be negative.";
+        public const string RatingMustBeBetweenZeroAndFive = "Rating must be between 0 and 5.";
+        public const string ProductUrlInvalid = "Product URL must be a valid absolute URL.";
+        public const string ImageUrlInvalid = "Image URL must be a valid absolute URL.";
+
+        public static string AmazonProductIdMaximumLength(int maximumLength) =>
+            $"Amazon product id must not exceed {maximumLength} characters.";
     }
 
     public static class Bestsellers

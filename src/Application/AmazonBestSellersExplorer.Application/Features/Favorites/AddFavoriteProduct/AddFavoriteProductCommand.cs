@@ -93,11 +93,17 @@ public sealed class AddFavoriteProductCommandHandler(
 
 public sealed class AddFavoriteProductCommandValidator : AbstractValidator<AddFavoriteProductCommand>
 {
+    private const int AmazonProductIdMaxLength = 64;
+    private const double MinimumRating = 0;
+    private const double MaximumRating = 5;
+
     public AddFavoriteProductCommandValidator()
     {
         RuleFor(command => command.AmazonProductId)
             .NotEmpty()
-            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdRequired);
+            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdRequired)
+            .Must(amazonProductId => string.IsNullOrWhiteSpace(amazonProductId) || amazonProductId.Trim().Length <= AmazonProductIdMaxLength)
+            .WithMessage(ApplicationMessages.Favorites.AmazonProductIdMaximumLength(AmazonProductIdMaxLength));
 
         RuleFor(command => command.Title)
             .NotEmpty()
@@ -105,6 +111,31 @@ public sealed class AddFavoriteProductCommandValidator : AbstractValidator<AddFa
 
         RuleFor(command => command.ProductUrl)
             .NotEmpty()
-            .WithMessage(ApplicationMessages.Favorites.ProductUrlRequired);
+            .WithMessage(ApplicationMessages.Favorites.ProductUrlRequired)
+            .Must(IsValidAbsoluteHttpUrl)
+            .WithMessage(ApplicationMessages.Favorites.ProductUrlInvalid);
+
+        RuleFor(command => command.Price)
+            .Must(price => price is null || price >= 0)
+            .WithMessage(ApplicationMessages.Favorites.PriceMustNotBeNegative);
+
+        RuleFor(command => command.Rating)
+            .Must(rating => rating is null || rating is >= MinimumRating and <= MaximumRating)
+            .WithMessage(ApplicationMessages.Favorites.RatingMustBeBetweenZeroAndFive);
+
+        RuleFor(command => command.ImageUrl)
+            .Must(imageUrl => string.IsNullOrWhiteSpace(imageUrl) || IsValidAbsoluteHttpUrl(imageUrl))
+            .WithMessage(ApplicationMessages.Favorites.ImageUrlInvalid);
+    }
+
+    private static bool IsValidAbsoluteHttpUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 }

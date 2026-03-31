@@ -1,4 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { AddFavoriteProductRequest } from '../models/add-favorite-product-request.model';
@@ -142,12 +143,12 @@ export class FavoritesStateService {
           this.favoritesRevision++;
           this.hasLoadedState.set(true);
         },
-        error: () => {
+        error: error => {
           if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
             return;
           }
 
-          this.errorState.set('Unable to add favorite product.');
+          this.errorState.set(extractFavoritesError(error, `We couldn't save this product to your favorites.`));
         }
       });
   }
@@ -180,12 +181,12 @@ export class FavoritesStateService {
           this.favoritesRevision++;
           this.hasLoadedState.set(true);
         },
-        error: () => {
+        error: error => {
           if (!this.canApplyMutationResult(stateCycleVersion, sessionKey)) {
             return;
           }
 
-          this.errorState.set('Unable to remove favorite product.');
+          this.errorState.set(extractFavoritesError(error, `We couldn't remove this product from your favorites.`));
         }
       });
   }
@@ -252,4 +253,25 @@ export class FavoritesStateService {
 
     this.operationIdsState.set(nextOperationIds);
   }
+}
+
+function extractFavoritesError(error: unknown, fallbackMessage: string): string {
+  if (error instanceof HttpErrorResponse) {
+    const payload = error.error as { errors?: unknown; detail?: unknown } | null;
+
+    if (payload && Array.isArray(payload.errors)) {
+      const firstError = payload.errors.find((item): item is string =>
+        typeof item === 'string' && item.trim().length > 0);
+
+      if (firstError) {
+        return firstError;
+      }
+    }
+
+    if (payload && typeof payload.detail === 'string' && payload.detail.trim().length > 0) {
+      return payload.detail;
+    }
+  }
+
+  return fallbackMessage;
 }
