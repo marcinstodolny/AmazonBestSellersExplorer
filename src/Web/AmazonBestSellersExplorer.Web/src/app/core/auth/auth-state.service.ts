@@ -1,7 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { AuthSession } from '../../shared/models/auth-session.model';
 
-const authSessionStorageKey = 'amazon-best-sellers-explorer.auth-session';
+export const AUTH_SESSION_STORAGE_KEY = 'amazon-best-sellers-explorer.auth-session';
 
 @Injectable({
   providedIn: 'root'
@@ -36,14 +36,14 @@ export class AuthStateService {
     }
 
     this.sessionState.set(normalizedSession);
-    localStorage.setItem(authSessionStorageKey, JSON.stringify(normalizedSession));
+    localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(normalizedSession));
     this.scheduleExpiration(normalizedSession);
   }
 
   clearToken(): void {
     this.clearExpirationTimer();
     this.sessionState.set(null);
-    localStorage.removeItem(authSessionStorageKey);
+    localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
   }
 
   revalidateSession(): void {
@@ -55,7 +55,7 @@ export class AuthStateService {
   }
 
   private readSession(): AuthSession | null {
-    const rawSession = localStorage.getItem(authSessionStorageKey);
+    const rawSession = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
 
     if (!rawSession) {
       return null;
@@ -66,14 +66,14 @@ export class AuthStateService {
       const normalizedSession = this.normalizeSession(parsedSession);
 
       if (normalizedSession === null) {
-        localStorage.removeItem(authSessionStorageKey);
+        localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
         return null;
       }
 
       this.scheduleExpiration(normalizedSession);
       return normalizedSession;
     } catch {
-      localStorage.removeItem(authSessionStorageKey);
+      localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
       return null;
     }
   }
