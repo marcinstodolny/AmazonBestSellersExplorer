@@ -203,14 +203,12 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       box-shadow: 0 10px 24px rgba(19, 32, 40, 0.07);
     }
 
-    .product-media {
-      background:
-        linear-gradient(180deg, rgba(24, 64, 179, 0.08), rgba(19, 94, 70, 0.12)),
-        #f4f6f7;
+.product-media {
+      background: #ffffff;
       display: grid;
       place-items: center;
       overflow: hidden;
-      padding: 0;
+      padding: 10px;
     }
 
     .product-media img {
@@ -218,7 +216,6 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       height: 100%;
       object-fit: cover;
       display: block;
-      border-radius: 0;
     }
 
     .image-fallback {
@@ -227,7 +224,6 @@ import { FavoritesStateService } from '../data/favorites-state.service';
       font-weight: 600;
       width: 100%;
       height: 100%;
-      border-radius: 0;
       display: grid;
       place-items: center;
     }
