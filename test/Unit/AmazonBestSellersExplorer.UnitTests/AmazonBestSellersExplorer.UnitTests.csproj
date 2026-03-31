@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Infrastructure\AmazonBestSellersExplorer.Infrastructure\AmazonBestSellersExplorer.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Domain\AmazonBestSellersExplorer.Domain\AmazonBestSellersExplorer.Domain.csproj" />
   </ItemGroup>
 
