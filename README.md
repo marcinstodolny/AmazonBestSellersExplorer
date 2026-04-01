@@ -266,6 +266,7 @@ Environment note:
 
 ```powershell
 cd src\Web\AmazonBestSellersExplorer.Web
+npm install
 npm test
 ```
 
