@@ -5,7 +5,9 @@ using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.API.Authentication;
 using AmazonBestSellersExplorer.API.Middleware;
 using AmazonBestSellersExplorer.Infrastructure.DependencyInjection;
+using AmazonBestSellersExplorer.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AmazonBestSellersExplorer.API
@@ -49,6 +51,10 @@ namespace AmazonBestSellersExplorer.API
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                using var scope = app.Services.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                dbContext.Database.Migrate();
+
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
