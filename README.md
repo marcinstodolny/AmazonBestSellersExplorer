@@ -1,12 +1,23 @@
 # AmazonBestSellersExplorer
 
-AmazonBestSellersExplorer is a full-stack sample application for browsing Amazon software best sellers, registering and logging in with JWT, and managing a personal list of favorite products.
+AmazonBestSellersExplorer is a full-stack recruitment assignment built around one main user journey: browse Amazon software bestsellers, create an account, sign in, and manage a personal favorites list.
 
-The project exposes its own .NET API, stores users and favorites in SQL Server, integrates with RapidAPI for bestseller data, and provides an Angular frontend for the main user flow.
+The solution combines a .NET 10 backend, an Angular 20 frontend, SQL Server persistence, and a RapidAPI integration used to fetch bestseller data.
+
+## Project Overview
+
+The application provides:
+
+- a public bestseller catalog for Amazon `Software` products in `PL`
+- user registration and login with JWT-based authentication
+- a protected favorites flow for authenticated users
+- an Angular frontend consuming the application's own .NET API
+- RapidAPI integration for bestseller data
 
 ## Tech Stack
 
 ### Backend
+
 - .NET 10
 - ASP.NET Core Web API
 - Entity Framework Core
@@ -16,43 +27,89 @@ The project exposes its own .NET API, stores users and favorites in SQL Server, 
 - JWT authentication
 
 ### Frontend
+
 - Angular 20
 - Standalone Components
 - PrimeNG `DataView`
 - Signals
 - Functional HTTP interceptor for JWT
 
-### Testing
+### Testing and Quality
+
 - xUnit
 - `WebApplicationFactory`
 - SQL Server LocalDB
 - Respawn
+- GitHub Actions CI
 
-## Main Features
+## Key Features
 
-- Public best sellers view for Amazon `Software` products in `PL`
-- User registration with username + password
-- User login with JWT token issuance
-- Protected favorites flow:
+- Public software bestsellers page
+- Register and login flow
+- JWT token issuance and authenticated API access
+- Protected favorites page
+- Add/remove favorites directly from the bestseller list
+- Persistent favorites stored in SQL Server
+- Graceful bestseller-service error handling when RapidAPI is unavailable or misconfigured
+
+## Assignment Coverage
+
+This repository covers the core task requirements:
+
+- public bestsellers flow
+- registration and login
+- JWT-based authentication
+- protected favorites flow
+- PrimeNG `DataView`
+- Angular standalone components
+- functional HTTP interceptor for JWT
+- Signals-based state handling where used
+- backend validation and consistent error handling
+- auditability of key user operations
+
+## Beyond the Original Scope
+
+The repository also includes deliberate quality improvements beyond the base assignment:
+
+- GitHub Actions CI for backend and frontend validation
+- backend unit tests
+- backend integration tests
+- focused unit test for the RapidAPI bestseller request
+- global exception handling middleware
+- request logging middleware for API requests
+- persistent audit logs for key business operations
+- frontend polish for loading, error, and favorites interaction states
+
+## Recent Improvements
+
+Recent work added or refined:
+
+- global exception handling middleware for API failures
+- request logging middleware with method, path, status code, elapsed time, and user context when available
+- persistent audit logs for:
+  - successful registration
+  - successful login
   - add favorite
   - remove favorite
-  - list current user's favorites
-- Angular frontend integrated with the backend API
+- improved authenticated bestseller startup flow so favorites are loaded first and heart states stay consistent after login
+- graceful handling of missing RapidAPI configuration without failing whole application startup
+- dedicated frontend error state for an unavailable or misconfigured bestseller service
+- UI and copy polish to make the app feel closer to a finished submission than a scaffold
 
 ## Architecture
 
 ### Backend
 
-The backend follows a lightweight Clean Architecture split into:
+The backend follows a lightweight Clean Architecture split:
 
 - `src/Domain`
-  Domain entities and value objects such as `User`, `FavoriteProduct`, and `Username`
+  domain entities, rules, and value objects
 - `src/Application`
-  Use cases, MediatR commands/queries, validation, contracts, and repository abstractions
+  use cases, validation, contracts, and abstractions
 - `src/Infrastructure`
-  EF Core persistence, repository implementations, authentication services, and RapidAPI integration
+  EF Core persistence, repositories, authentication services, and RapidAPI integration
 - `src/API`
-  Controllers, JWT/API configuration, middleware, and HTTP-specific concerns
+  controllers, middleware, and HTTP-specific configuration
 
 ### Frontend
 
@@ -65,17 +122,9 @@ The Angular application is organized into:
 - `features/auth`
   login and register flow
 - `features/bestsellers`
-  public best sellers page
+  public bestsellers page
 - `features/favorites`
   protected favorites flow with shared state based on Signals
-
-## Demo Flow
-
-1. Open the public best sellers page.
-2. Register a new account or log in with an existing one.
-3. Add a product from the best sellers list to favorites.
-4. Open the favorites page to verify the saved product.
-5. Remove the product from favorites and confirm the list updates.
 
 ## Local Setup
 
@@ -84,7 +133,7 @@ The Angular application is organized into:
 - .NET SDK 10
 - Node.js + npm
 - SQL Server LocalDB
-- RapidAPI key for `real-time-amazon-data`
+- RapidAPI key for `real-time-amazon-data` if you want the bestseller flow to work against the real external service
 
 ### Backend
 
@@ -95,57 +144,13 @@ dotnet build AmazonBestSellersExplorer.slnx
 dotnet run --project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj --launch-profile https
 ```
 
-By default the API uses:
+Default local API URL:
 
-- SQL Server LocalDB
-- database: `AmazonBestSellersExplorer`
-- Swagger: `https://localhost:7233/swagger`
+- `https://localhost:7233`
 
-### Database
+Swagger:
 
-The default connection string is in:
-
-- [appsettings.json](src/API/AmazonBestSellersExplorer.API/appsettings.json)
-
-Default value:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=AmazonBestSellersExplorer;Trusted_Connection=True;MultipleActiveResultSets=True"
-}
-```
-
-To apply the current schema locally:
-
-```powershell
-dotnet ef database update --project src\Infrastructure\AmazonBestSellersExplorer.Infrastructure\AmazonBestSellersExplorer.Infrastructure.csproj --startup-project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
-```
-
-### RapidAPI
-
-The backend bestseller endpoint requires a valid RapidAPI key.
-
-Configuration section:
-
-```json
-"RapidApi": {
-  "BaseUrl": "https://real-time-amazon-data.p.rapidapi.com/",
-  "ApiKey": "",
-  "ApiHost": "real-time-amazon-data.p.rapidapi.com"
-}
-```
-
-Set `RapidApi:ApiKey` using one of the following:
-
-- local `appsettings.json` override
-- environment variable
-- user secrets
-
-Example:
-
-```powershell
-dotnet user-secrets set "RapidApi:ApiKey" "<YOUR_RAPIDAPI_KEY>" --project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
-```
+- `https://localhost:7233/swagger`
 
 ### Frontend
 
@@ -153,7 +158,7 @@ Frontend project:
 
 - `src/Web/AmazonBestSellersExplorer.Web`
 
-Install dependencies and run the Angular app:
+Run locally:
 
 ```powershell
 cd src\Web\AmazonBestSellersExplorer.Web
@@ -165,17 +170,78 @@ Notes:
 
 - the frontend uses relative `/api` calls
 - Angular dev server proxies `/api` to `https://localhost:7233`
-- make sure the backend API is running before using the frontend
+- start the backend first for a usable local flow
+
+## Configuration
+
+### Database
+
+The default connection string is defined in:
+
+- `src/API/AmazonBestSellersExplorer.API/appsettings.json`
+
+Default local value:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=AmazonBestSellersExplorer;Trusted_Connection=True;MultipleActiveResultSets=True"
+}
+```
+
+Apply the current schema:
+
+```powershell
+dotnet ef database update --project src\Infrastructure\AmazonBestSellersExplorer.Infrastructure\AmazonBestSellersExplorer.Infrastructure.csproj --startup-project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
+```
+
+### RapidAPI
+
+RapidAPI is required only for the bestseller integration.
+
+Configuration section:
+
+```json
+"RapidApi": {
+  "BaseUrl": "https://real-time-amazon-data.p.rapidapi.com/",
+  "ApiKey": "",
+  "ApiHost": "real-time-amazon-data.p.rapidapi.com"
+}
+```
+
+Set `RapidApi:ApiKey` for local use, for example with user secrets:
+
+```powershell
+dotnet user-secrets set "RapidApi:ApiKey" "<YOUR_RAPIDAPI_KEY>" --project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
+```
+
+If RapidAPI configuration is missing, the application still starts. Only the bestseller flow becomes unavailable and the frontend shows a dedicated user-friendly error state instead of crashing the entire app.
 
 ## Tests
 
-Integration tests:
+### Backend Unit Tests
+
+```powershell
+dotnet test test\Unit\AmazonBestSellersExplorer.UnitTests\AmazonBestSellersExplorer.UnitTests.csproj
+```
+
+### Backend Integration Tests
 
 ```powershell
 dotnet test test\Integration\AmazonBestSellersExplorer.IntegrationTests\AmazonBestSellersExplorer.IntegrationTests.csproj
 ```
 
-Frontend tests:
+Integration tests use:
+
+- `WebApplicationFactory`
+- SQL Server LocalDB
+- a dedicated test database
+- Respawn for reset between tests
+
+Environment note:
+
+- LocalDB must be available on the machine running the integration tests
+
+### Frontend Tests
 
 ```powershell
 cd src\Web\AmazonBestSellersExplorer.Web
@@ -184,24 +250,11 @@ npm test
 
 Practical note:
 
-- the frontend test target uses Angular/Karma and requires a local environment able to start a test browser such as Chrome or Chromium
-
-### Integration Test Notes
-
-Integration tests use:
-
-- `WebApplicationFactory`
-- SQL Server LocalDB
-- a dedicated test database created per test run
-- Respawn for database reset between tests
-
-Environment requirement:
-
-- LocalDB must be available on the machine running the tests
+- frontend tests use Angular/Karma and require a local environment able to launch a browser such as Chrome or Chromium
 
 ## CI
 
-GitHub Actions CI validates the repository automatically for:
+GitHub Actions CI runs automatically on:
 
 - pushes to `development`
 - pull requests targeting `development`
@@ -213,7 +266,9 @@ Current CI scope:
 - frontend `npm ci`
 - frontend production build
 
-Integration tests are intentionally not part of GitHub Actions yet because they currently depend on SQL Server LocalDB. That setup is suitable for local development, but it is not a reliable default for GitHub-hosted Linux runners. They can be added to CI later after moving to a CI-friendly database strategy.
+This CI setup is intentional and goes beyond the original assignment.
+
+Integration tests are currently not executed in GitHub Actions because they depend on SQL Server LocalDB, which is suitable for local development but not a reliable default for GitHub-hosted Linux runners. They can be added later after moving to a CI-friendly database strategy.
 
 ## API Endpoints
 
@@ -232,10 +287,10 @@ Integration tests are intentionally not part of GitHub Actions yet because they 
 
 - `GET /api/bestsellers`
 
-## Current Notes
+## Practical Notes / Limitations
 
-- `GET /api/bestsellers` requires a valid RapidAPI key configured on the backend
-- integration tests require SQL Server LocalDB
+- the bestseller flow depends on valid RapidAPI configuration
+- missing RapidAPI configuration no longer blocks application startup; it is handled as a dedicated bestseller-service error
 - favorites endpoints require JWT authentication
-- Angular dev mode expects the API to be reachable at `https://localhost:7233`
-- audit logs are currently created for successful registration, successful login, and favorite add/remove operations
+- integration tests require SQL Server LocalDB
+- GitHub Actions currently does not run LocalDB-based integration tests
