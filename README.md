@@ -316,6 +316,11 @@ Integration tests are currently not executed in GitHub Actions because they depe
 - integration tests require SQL Server LocalDB
 - GitHub Actions currently does not run LocalDB-based integration tests
 
+## Possible future improvements
+
+- Replace the current LocalDB-based local setup with a containerized SQL Server / Docker-based workflow to make local startup and integration testing more portable across environments.
+- Move integration tests to a CI-friendly database setup so they can also run in GitHub Actions.
+
 
 ## Screenshots
 
