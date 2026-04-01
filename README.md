@@ -135,6 +135,11 @@ The Angular application is organized into:
 - SQL Server LocalDB
 - RapidAPI key for `real-time-amazon-data` if you want the bestseller flow to work against the real external service
 
+Typical local workflow:
+
+- backend: open the solution in Visual Studio and run `AmazonBestSellersExplorer.API`
+- frontend: in `src/Web/AmazonBestSellersExplorer.Web` run `npm start`
+
 ### Backend
 
 From the repository root:
