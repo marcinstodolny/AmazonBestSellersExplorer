@@ -1,8 +1,8 @@
-using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 
 namespace AmazonBestSellersExplorer.Application.Abstractions.Services;
 
 public interface IAmazonBestSellerService
 {
-    Task<IReadOnlyList<BestsellerProductDto>> GetSoftwareBestSellersAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BestsellerProductResponse>> GetSoftwareBestSellersAsync(CancellationToken cancellationToken);
 }

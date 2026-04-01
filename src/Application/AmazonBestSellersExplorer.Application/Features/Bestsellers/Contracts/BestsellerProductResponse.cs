@@ -1,6 +1,6 @@
-namespace AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
+namespace AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 
-public sealed record FavoriteProductDto(
+public sealed record BestsellerProductResponse(
     string AmazonProductId,
     string Title,
     decimal? Price,

@@ -17,7 +17,7 @@ internal sealed record AddFavoriteProductRequest(
     string ProductUrl,
     string? ImageUrl);
 
-internal sealed record FavoriteProductDto(
+internal sealed record FavoriteProductResponse(
     string AmazonProductId,
     string Title,
     decimal? Price,

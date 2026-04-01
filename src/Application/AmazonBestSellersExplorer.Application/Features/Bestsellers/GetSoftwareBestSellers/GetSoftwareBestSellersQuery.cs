@@ -1,19 +1,19 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
-using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 using AmazonBestSellersExplorer.Domain.Base;
 using MediatR;
 
 namespace AmazonBestSellersExplorer.Application.Features.Bestsellers.GetSoftwareBestSellers;
 
 public sealed record GetSoftwareBestSellersQuery
-    : IRequest<Result<IReadOnlyList<BestsellerProductDto>>>;
+    : IRequest<Result<IReadOnlyList<BestsellerProductResponse>>>;
 
 public sealed class GetSoftwareBestSellersQueryHandler(
     IAmazonBestSellerService amazonBestSellerService)
-    : IRequestHandler<GetSoftwareBestSellersQuery, Result<IReadOnlyList<BestsellerProductDto>>>
+    : IRequestHandler<GetSoftwareBestSellersQuery, Result<IReadOnlyList<BestsellerProductResponse>>>
 {
-    public async Task<Result<IReadOnlyList<BestsellerProductDto>>> Handle(
+    public async Task<Result<IReadOnlyList<BestsellerProductResponse>>> Handle(
         GetSoftwareBestSellersQuery request,
         CancellationToken cancellationToken)
     {
@@ -29,11 +29,11 @@ public sealed class GetSoftwareBestSellersQueryHandler(
         }
         catch (BestsellersConfigurationException)
         {
-            return Result.Fail<IReadOnlyList<BestsellerProductDto>>(ApplicationMessages.Bestsellers.ServiceUnavailable);
+            return Result.Fail<IReadOnlyList<BestsellerProductResponse>>(ApplicationMessages.Bestsellers.ServiceUnavailable);
         }
         catch
         {
-            return Result.Fail<IReadOnlyList<BestsellerProductDto>>(ApplicationMessages.Bestsellers.FailedToRetrieveSoftwareBestSellers);
+            return Result.Fail<IReadOnlyList<BestsellerProductResponse>>(ApplicationMessages.Bestsellers.FailedToRetrieveSoftwareBestSellers);
         }
     }
 }

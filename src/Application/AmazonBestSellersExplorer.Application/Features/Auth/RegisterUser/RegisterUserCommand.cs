@@ -1,7 +1,7 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
-using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using AmazonBestSellersExplorer.Domain.Rules;

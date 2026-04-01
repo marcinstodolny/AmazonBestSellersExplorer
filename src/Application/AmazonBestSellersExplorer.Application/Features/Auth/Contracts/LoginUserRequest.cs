@@ -1,4 +1,4 @@
-namespace AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
+namespace AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 
 public sealed record LoginUserRequest(
     string Username,
