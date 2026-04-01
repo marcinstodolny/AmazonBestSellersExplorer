@@ -152,6 +152,8 @@ Swagger:
 
 - `https://localhost:7233/swagger`
 
+In `Development`, the API applies pending EF Core migrations automatically on startup.
+
 ### Frontend
 
 Frontend project:
@@ -188,7 +190,9 @@ Default local value:
 }
 ```
 
-Apply the current schema:
+In normal local development, you do not need to run migrations manually because the API applies pending migrations on startup.
+
+If you want to apply the current schema manually, you can still run:
 
 ```powershell
 dotnet ef database update --project src\Infrastructure\AmazonBestSellersExplorer.Infrastructure\AmazonBestSellersExplorer.Infrastructure.csproj --startup-project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
