@@ -315,3 +315,14 @@ Integration tests are currently not executed in GitHub Actions because they depe
 - favorites endpoints require JWT authentication
 - integration tests require SQL Server LocalDB
 - GitHub Actions currently does not run LocalDB-based integration tests
+
+
+## Screenshots
+
+Example screens are available in `docs/screenshots`.
+
+- `01-bestsellers-guest.png`
+- `02-register.png`
+- `03-login.png`
+- `04-favorites.png`
+- `05-bestsellers.png`
