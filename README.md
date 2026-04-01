@@ -220,6 +220,18 @@ dotnet user-secrets set "RapidApi:ApiKey" "<YOUR_RAPIDAPI_KEY>" --project src\AP
 
 If RapidAPI configuration is missing, the application still starts. Only the bestseller flow becomes unavailable and the frontend shows a dedicated user-friendly error state instead of crashing the entire app.
 
+### JWT
+
+The repository contains development-safe defaults for local startup. In particular, `Jwt:SecretKey` in `appsettings.json` is a local development placeholder kept in the repository so the API can start easily after clone.
+
+For non-local or real use, override `Jwt:SecretKey` outside the repository, for example via user secrets or environment variables.
+
+Example:
+
+```powershell
+dotnet user-secrets set "Jwt:SecretKey" "<YOUR_DEVELOPMENT_SECRET_KEY>" --project src\API\AmazonBestSellersExplorer.API\AmazonBestSellersExplorer.API.csproj
+```
+
 ## Tests
 
 ### Backend Unit Tests
