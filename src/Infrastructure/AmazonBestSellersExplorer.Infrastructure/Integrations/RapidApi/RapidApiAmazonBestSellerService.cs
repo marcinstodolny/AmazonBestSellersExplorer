@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
-using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 using AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi.Models;
 using Microsoft.Extensions.Options;
 
@@ -13,9 +13,9 @@ public sealed class RapidApiAmazonBestSellerService(
     IOptions<RapidApiOptions> rapidApiOptionsAccessor) : IAmazonBestSellerService
 {
     private const string BestSellersRequestUri = "best-sellers?category=software&country=PL&type=BEST_SELLERS";
-    private readonly RapidApiOptions rapidApiOptions = rapidApiOptionsAccessor.Value;
+    private readonly RapidApiOptions _rapidApiOptions = rapidApiOptionsAccessor.Value;
 
-    public async Task<IReadOnlyList<BestsellerProductDto>> GetSoftwareBestSellersAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<BestsellerProductResponse>> GetSoftwareBestSellersAsync(CancellationToken cancellationToken)
     {
         using var request = CreateRequest();
         using var response = await httpClient.SendAsync(request, cancellationToken);
@@ -29,7 +29,7 @@ public sealed class RapidApiAmazonBestSellerService(
                 !string.IsNullOrWhiteSpace(product.Asin)
                 && !string.IsNullOrWhiteSpace(product.ProductTitle)
                 && !string.IsNullOrWhiteSpace(product.ProductUrl))
-            .Select(static product => new BestsellerProductDto(
+            .Select(static product => new BestsellerProductResponse(
                 product.Asin!,
                 product.ProductTitle!,
                 ParsePrice(product.ProductPrice),
@@ -41,14 +41,14 @@ public sealed class RapidApiAmazonBestSellerService(
 
     private HttpRequestMessage CreateRequest()
     {
-        if (!TryCreateBaseUri(rapidApiOptions.BaseUrl, out var baseUri) || string.IsNullOrWhiteSpace(rapidApiOptions.ApiKey) || string.IsNullOrWhiteSpace(rapidApiOptions.ApiHost))
+        if (!TryCreateBaseUri(_rapidApiOptions.BaseUrl, out var baseUri) || string.IsNullOrWhiteSpace(_rapidApiOptions.ApiKey) || string.IsNullOrWhiteSpace(_rapidApiOptions.ApiHost))
         {
             throw new BestsellersConfigurationException();
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseUri, BestSellersRequestUri));
-        request.Headers.Add("x-rapidapi-key", rapidApiOptions.ApiKey);
-        request.Headers.Add("x-rapidapi-host", rapidApiOptions.ApiHost);
+        request.Headers.Add("x-rapidapi-key", _rapidApiOptions.ApiKey);
+        request.Headers.Add("x-rapidapi-host", _rapidApiOptions.ApiHost);
 
         return request;
     }

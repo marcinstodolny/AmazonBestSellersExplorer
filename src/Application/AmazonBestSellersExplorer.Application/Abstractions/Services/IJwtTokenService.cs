@@ -1,4 +1,4 @@
-using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Domain.Entities;
 
 namespace AmazonBestSellersExplorer.Application.Abstractions.Services;

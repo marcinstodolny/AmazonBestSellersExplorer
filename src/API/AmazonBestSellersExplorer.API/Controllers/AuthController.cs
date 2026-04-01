@@ -1,5 +1,5 @@
 using AmazonBestSellersExplorer.API.Common;
-using AmazonBestSellersExplorer.Application.Features.Auth.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 using AmazonBestSellersExplorer.Application.Features.Auth.RegisterUser;
 using AmazonBestSellersExplorer.Application.Common;

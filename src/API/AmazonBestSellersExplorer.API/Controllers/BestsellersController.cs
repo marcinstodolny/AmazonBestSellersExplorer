@@ -1,5 +1,5 @@
 using AmazonBestSellersExplorer.API.Common;
-using AmazonBestSellersExplorer.Application.Features.Bestsellers.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Bestsellers.GetSoftwareBestSellers;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.API.Extensions;
@@ -15,7 +15,7 @@ namespace AmazonBestSellersExplorer.API.Controllers;
 public sealed class BestsellersController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<BestsellerProductDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<IReadOnlyList<BestsellerProductResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status502BadGateway)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)

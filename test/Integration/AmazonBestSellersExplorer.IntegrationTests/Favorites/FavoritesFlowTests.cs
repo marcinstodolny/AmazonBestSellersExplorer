@@ -138,7 +138,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var body = await response.Content.ReadFromJsonAsync<List<FavoriteProductDto>>();
+        var body = await response.Content.ReadFromJsonAsync<List<FavoriteProductResponse>>();
 
         Assert.NotNull(body);
         Assert.Single(body);
@@ -160,7 +160,7 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
         var getResponse = await client.GetAsync("/api/favorites");
-        var body = await getResponse.Content.ReadFromJsonAsync<List<FavoriteProductDto>>();
+        var body = await getResponse.Content.ReadFromJsonAsync<List<FavoriteProductResponse>>();
 
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
         Assert.NotNull(body);

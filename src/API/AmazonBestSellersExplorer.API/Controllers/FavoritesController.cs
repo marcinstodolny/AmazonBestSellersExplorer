@@ -1,6 +1,6 @@
 using AmazonBestSellersExplorer.API.Common;
 using AmazonBestSellersExplorer.Application.Features.Favorites.AddFavoriteProduct;
-using AmazonBestSellersExplorer.Application.Features.Favorites.Dtos;
+using AmazonBestSellersExplorer.Application.Features.Favorites.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Favorites.GetFavoriteProducts;
 using AmazonBestSellersExplorer.Application.Features.Favorites.RemoveFavoriteProduct;
 using AmazonBestSellersExplorer.API.Contracts.Favorites;
@@ -17,7 +17,7 @@ namespace AmazonBestSellersExplorer.API.Controllers;
 public sealed class FavoritesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<FavoriteProductDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<IReadOnlyList<FavoriteProductResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
