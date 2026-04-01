@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -196,7 +196,7 @@ export class RegisterPageComponent {
     password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)]]
   });
 
-  protected readonly usernameError = computed(() => {
+  protected usernameError(): string {
     const control = this.form.controls.username;
 
     if (control.hasError('required')) {
@@ -212,9 +212,9 @@ export class RegisterPageComponent {
     }
 
     return '';
-  });
+  }
 
-  protected readonly passwordError = computed(() => {
+  protected passwordError(): string {
     const control = this.form.controls.password;
 
     if (control.hasError('required')) {
@@ -230,7 +230,7 @@ export class RegisterPageComponent {
     }
 
     return '';
-  });
+  }
 
   protected submit(): void {
     this.errorMessages.set([]);

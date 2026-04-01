@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -197,7 +197,7 @@ export class LoginPageComponent {
     password: ['', [Validators.required]]
   });
 
-  protected readonly usernameError = computed(() => {
+  protected usernameError(): string {
     const control = this.form.controls.username;
 
     if (control.hasError('required')) {
@@ -205,9 +205,9 @@ export class LoginPageComponent {
     }
 
     return '';
-  });
+  }
 
-  protected readonly passwordError = computed(() => {
+  protected passwordError(): string {
     const control = this.form.controls.password;
 
     if (control.hasError('required')) {
@@ -215,7 +215,7 @@ export class LoginPageComponent {
     }
 
     return '';
-  });
+  }
 
   protected submit(): void {
     this.errorMessages.set([]);
