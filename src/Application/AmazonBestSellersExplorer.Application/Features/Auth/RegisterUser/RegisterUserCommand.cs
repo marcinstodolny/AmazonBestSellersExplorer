@@ -2,6 +2,7 @@ using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
+using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using AmazonBestSellersExplorer.Domain.Rules;
 using AmazonBestSellersExplorer.Domain.ValueObjects;
@@ -12,7 +13,7 @@ namespace AmazonBestSellersExplorer.Application.Features.Auth.RegisterUser;
 
 public sealed record RegisterUserCommand(
     string Username,
-    string Password) : IRequest<AuthResult>;
+    string Password) : IRequest<Result<AuthResponse>>;
 
 public sealed class RegisterUserCommandHandler(
     IUserRepository userRepository,
@@ -21,30 +22,36 @@ public sealed class RegisterUserCommandHandler(
     IJwtTokenService jwtTokenService,
     IValidator<RegisterUserCommand> validator,
     IUnitOfWork unitOfWork)
-    : IRequestHandler<RegisterUserCommand, AuthResult>
+    : IRequestHandler<RegisterUserCommand, Result<AuthResponse>>
 {
 
-    public async Task<AuthResult> Handle(
+    public async Task<Result<AuthResponse>> Handle(
         RegisterUserCommand command,
         CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return AuthResult.ValidationFailed(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
+            return Result.Fail<AuthResponse>(
+                validationResult.Errors.Select(static error => error.ErrorMessage).ToArray(),
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         var usernameExists = await userRepository.ExistsByUsernameAsync(command.Username, cancellationToken);
         if (usernameExists)
         {
-            return AuthResult.UsernameAlreadyTaken();
+            return Result.Fail<AuthResponse>(
+                ApplicationMessages.Auth.UsernameAlreadyTaken,
+                AuthErrorCode.UsernameAlreadyTaken.ToString());
         }
 
         var passwordHash = passwordHasher.HashPassword(command.Password);
         var userResult = User.Create(command.Username, passwordHash);
         if (userResult.IsFailed || !userResult.TryGetValue(out var user))
         {
-            return AuthResult.ValidationFailed(userResult.Errors);
+            return Result.Fail<AuthResponse>(
+                userResult.Errors,
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         await userRepository.AddAsync(user, cancellationToken);
@@ -57,7 +64,9 @@ public sealed class RegisterUserCommandHandler(
 
         if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
         {
-            return AuthResult.ValidationFailed(auditLogResult.Errors);
+            return Result.Fail<AuthResponse>(
+                auditLogResult.Errors,
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         await auditLogRepository.AddAsync(auditLog, cancellationToken);
@@ -65,7 +74,7 @@ public sealed class RegisterUserCommandHandler(
 
         var authResponse = jwtTokenService.GenerateToken(user);
 
-        return AuthResult.Success(authResponse);
+        return Result.Success(authResponse);
     }
 }
 

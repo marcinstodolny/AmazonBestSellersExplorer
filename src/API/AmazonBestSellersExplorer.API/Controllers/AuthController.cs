@@ -52,7 +52,7 @@ public sealed class AuthController(IMediator mediator) : ControllerBase
             return Ok(response);
         }
 
-        if (result.ErrorCode is AuthErrorCode.InvalidCredentials)
+        if (string.Equals(result.ErrorCode, AuthErrorCode.InvalidCredentials.ToString(), StringComparison.Ordinal))
         {
             return this.ToProblem(result, StatusCodes.Status401Unauthorized, ApiProblemTitles.AuthenticationFailed);
         }
