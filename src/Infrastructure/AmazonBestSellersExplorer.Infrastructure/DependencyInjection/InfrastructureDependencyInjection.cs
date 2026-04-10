@@ -1,6 +1,6 @@
+using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
 using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
-using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Infrastructure.Authentication;
 using AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi;
 using AmazonBestSellersExplorer.Infrastructure.Persistence;
@@ -24,10 +24,12 @@ public static class InfrastructureDependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
+        services.AddHttpContextAccessor();
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString));
         services.AddHttpClient<IAmazonBestSellerService, RapidApiAmazonBestSellerService>();
 
+        services.AddScoped<ICurrentUserContext, HttpContextCurrentUserContext>();
         services.AddScoped<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IUserRepository, UserRepository>();

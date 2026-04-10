@@ -1,8 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AmazonBestSellersExplorer.Application.Abstractions.Authentication;
+using Microsoft.AspNetCore.Http;
 
-namespace AmazonBestSellersExplorer.API.Authentication;
+namespace AmazonBestSellersExplorer.Infrastructure.Authentication;
 
 public sealed class HttpContextCurrentUserContext(IHttpContextAccessor httpContextAccessor) : ICurrentUserContext
 {

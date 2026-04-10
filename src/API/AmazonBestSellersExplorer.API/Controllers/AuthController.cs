@@ -1,9 +1,10 @@
 using AmazonBestSellersExplorer.API.Common;
+using AmazonBestSellersExplorer.API.Contracts.Auth;
+using AmazonBestSellersExplorer.API.Extensions;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 using AmazonBestSellersExplorer.Application.Features.Auth.RegisterUser;
 using AmazonBestSellersExplorer.Application.Common;
-using AmazonBestSellersExplorer.API.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

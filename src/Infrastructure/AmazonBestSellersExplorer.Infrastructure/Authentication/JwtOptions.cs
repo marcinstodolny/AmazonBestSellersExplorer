@@ -1,4 +1,4 @@
-namespace AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
+namespace AmazonBestSellersExplorer.Infrastructure.Authentication;
 
 public sealed class JwtOptions
 {
