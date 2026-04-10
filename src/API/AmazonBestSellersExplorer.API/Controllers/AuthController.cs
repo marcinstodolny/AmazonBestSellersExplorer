@@ -4,7 +4,6 @@ using AmazonBestSellersExplorer.API.Extensions;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 using AmazonBestSellersExplorer.Application.Features.Auth.RegisterUser;
-using AmazonBestSellersExplorer.Application.Common;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +26,12 @@ public sealed class AuthController(IMediator mediator) : ControllerBase
             new RegisterUserCommand(request.Username, request.Password),
             cancellationToken);
 
-        return result.IsFailed ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed) : Ok(result.Value);
+        if (result.TryGetValue(out var response))
+        {
+            return Ok(response);
+        }
+
+        return this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed);
     }
 
     [AllowAnonymous]
@@ -48,14 +52,11 @@ public sealed class AuthController(IMediator mediator) : ControllerBase
             return Ok(response);
         }
 
-        if (result.Errors.Count == 1
-            && string.Equals(result.FirstError, ApplicationMessages.Auth.InvalidCredentials, StringComparison.Ordinal))
+        if (result.ErrorCode is AuthErrorCode.InvalidCredentials)
         {
             return this.ToProblem(result, StatusCodes.Status401Unauthorized, ApiProblemTitles.AuthenticationFailed);
         }
 
-        return result.IsFailed
-            ? this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed)
-            : Ok(result.Value);
+        return this.ToProblem(result, StatusCodes.Status400BadRequest, ApiProblemTitles.ValidationFailed);
     }
 }

@@ -1,5 +1,6 @@
 using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.API.Common;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AmazonBestSellersExplorer.API.Extensions;
@@ -12,6 +13,11 @@ internal static class ControllerBaseExtensions
     }
 
     public static ObjectResult ToProblem<T>(this ControllerBase controller, Result<T> result, int statusCode, string title)
+    {
+        return controller.ToProblemDetailsResult(result.Errors, statusCode, title);
+    }
+
+    public static ObjectResult ToProblem(this ControllerBase controller, AuthResult result, int statusCode, string title)
     {
         return controller.ToProblemDetailsResult(result.Errors, statusCode, title);
     }

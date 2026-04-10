@@ -2,7 +2,6 @@ using AmazonBestSellersExplorer.Application.Abstractions.Persistence;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
 using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
-using AmazonBestSellersExplorer.Domain.Base;
 using AmazonBestSellersExplorer.Domain.Entities;
 using FluentValidation;
 using MediatR;
@@ -11,7 +10,7 @@ namespace AmazonBestSellersExplorer.Application.Features.Auth.LoginUser;
 
 public sealed record LoginUserCommand(
     string Username,
-    string Password) : IRequest<Result<AuthResponse>>;
+    string Password) : IRequest<AuthResult>;
 
 public sealed class LoginUserCommandHandler(
     IUserRepository userRepository,
@@ -20,28 +19,28 @@ public sealed class LoginUserCommandHandler(
     IJwtTokenService jwtTokenService,
     IValidator<LoginUserCommand> validator,
     IUnitOfWork unitOfWork)
-    : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
+    : IRequestHandler<LoginUserCommand, AuthResult>
 {
-    public async Task<Result<AuthResponse>> Handle(
+    public async Task<AuthResult> Handle(
         LoginUserCommand command,
         CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail<AuthResponse>(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
+            return AuthResult.ValidationFailed(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
         }
 
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
         if (user is null)
         {
-            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
+            return AuthResult.InvalidCredentials();
         }
 
         var passwordIsValid = passwordHasher.VerifyPassword(command.Password, user.PasswordHash);
         if (!passwordIsValid)
         {
-            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
+            return AuthResult.InvalidCredentials();
         }
 
         var auditLogResult = AuditLog.Create(
@@ -52,7 +51,7 @@ public sealed class LoginUserCommandHandler(
 
         if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
         {
-            return Result.Fail<AuthResponse>(auditLogResult.Errors);
+            return AuthResult.ValidationFailed(auditLogResult.Errors);
         }
 
         await auditLogRepository.AddAsync(auditLog, cancellationToken);
@@ -60,7 +59,7 @@ public sealed class LoginUserCommandHandler(
 
         var authResponse = jwtTokenService.GenerateToken(user);
 
-        return Result.Success(authResponse);
+        return AuthResult.Success(authResponse);
     }
 }
 
