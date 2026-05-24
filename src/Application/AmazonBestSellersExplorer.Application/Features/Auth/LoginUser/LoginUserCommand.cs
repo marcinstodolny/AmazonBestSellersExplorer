@@ -29,19 +29,25 @@ public sealed class LoginUserCommandHandler(
         var validationResult = await validator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail<AuthResponse>(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
+            return Result.Fail<AuthResponse>(
+                validationResult.Errors.Select(static error => error.ErrorMessage).ToArray(),
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         var user = await userRepository.GetByUsernameAsync(command.Username, cancellationToken);
         if (user is null)
         {
-            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
+            return Result.Fail<AuthResponse>(
+                ApplicationMessages.Auth.InvalidCredentials,
+                AuthErrorCode.InvalidCredentials.ToString());
         }
 
         var passwordIsValid = passwordHasher.VerifyPassword(command.Password, user.PasswordHash);
         if (!passwordIsValid)
         {
-            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.InvalidCredentials);
+            return Result.Fail<AuthResponse>(
+                ApplicationMessages.Auth.InvalidCredentials,
+                AuthErrorCode.InvalidCredentials.ToString());
         }
 
         var auditLogResult = AuditLog.Create(
@@ -52,7 +58,9 @@ public sealed class LoginUserCommandHandler(
 
         if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
         {
-            return Result.Fail<AuthResponse>(auditLogResult.Errors);
+            return Result.Fail<AuthResponse>(
+                auditLogResult.Errors,
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         await auditLogRepository.AddAsync(auditLog, cancellationToken);

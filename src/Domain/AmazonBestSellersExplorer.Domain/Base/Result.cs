@@ -6,9 +6,10 @@ public class Result
 {
     private const string DefaultErrorMessage = "Unknown error";
 
-    protected Result(bool isSuccess, IReadOnlyCollection<string> errors)
+    protected Result(bool isSuccess, IReadOnlyCollection<string> errors, string? errorCode = null)
     {
         IsSuccess = isSuccess;
+        ErrorCode = isSuccess ? null : errorCode;
         Errors = NormalizeErrors(isSuccess, errors);
     }
 
@@ -16,21 +17,23 @@ public class Result
 
     public bool IsFailed => !IsSuccess;
 
+    public string? ErrorCode { get; }
+
     public IReadOnlyCollection<string> Errors { get; }
 
     public string? FirstError => Errors.FirstOrDefault();
 
     public static Result Success() => new(true, Array.Empty<string>());
 
-    public static Result Fail(string error) => new(false, new[] { error });
+    public static Result Fail(string error, string? errorCode = null) => new(false, new[] { error }, errorCode);
 
-    public static Result Fail(IReadOnlyCollection<string> errors) => new(false, errors);
+    public static Result Fail(IReadOnlyCollection<string> errors, string? errorCode = null) => new(false, errors, errorCode);
 
     public static Result<TValue> Success<TValue>(TValue value) => Result<TValue>.Success(value);
 
-    public static Result<TValue> Fail<TValue>(string error) => Result<TValue>.Fail(error);
+    public static Result<TValue> Fail<TValue>(string error, string? errorCode = null) => Result<TValue>.Fail(error, errorCode);
 
-    public static Result<TValue> Fail<TValue>(IReadOnlyCollection<string> errors) => Result<TValue>.Fail(errors);
+    public static Result<TValue> Fail<TValue>(IReadOnlyCollection<string> errors, string? errorCode = null) => Result<TValue>.Fail(errors, errorCode);
 
     private static IReadOnlyCollection<string> NormalizeErrors(bool isSuccess, IReadOnlyCollection<string>? errors)
     {
@@ -57,8 +60,8 @@ public class Result
 
 public sealed class Result<TValue> : Result
 {
-    private Result(bool isSuccess, TValue? value, IReadOnlyCollection<string> errors)
-        : base(isSuccess, errors)
+    private Result(bool isSuccess, TValue? value, IReadOnlyCollection<string> errors, string? errorCode = null)
+        : base(isSuccess, errors, errorCode)
     {
         Value = value;
     }
@@ -67,9 +70,9 @@ public sealed class Result<TValue> : Result
 
     public static Result<TValue> Success(TValue value) => new(true, value, Array.Empty<string>());
 
-    public new static Result<TValue> Fail(string error) => new(false, default, new[] { error });
+    public new static Result<TValue> Fail(string error, string? errorCode = null) => new(false, default, new[] { error }, errorCode);
 
-    public new static Result<TValue> Fail(IReadOnlyCollection<string> errors) => new(false, default, errors);
+    public new static Result<TValue> Fail(IReadOnlyCollection<string> errors, string? errorCode = null) => new(false, default, errors, errorCode);
 
     public bool TryGetValue([NotNullWhen(true)] out TValue? value)
     {

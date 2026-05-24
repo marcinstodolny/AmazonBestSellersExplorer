@@ -1,6 +1,6 @@
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
-using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
+using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Domain.Base;
 using MediatR;
 
@@ -27,7 +27,7 @@ public sealed class GetSoftwareBestSellersQueryHandler(
         {
             throw;
         }
-        catch (BestsellersConfigurationException)
+        catch (AmazonBestSellerServiceConfigurationException)
         {
             return Result.Fail<IReadOnlyList<BestsellerProductResponse>>(ApplicationMessages.Bestsellers.ServiceUnavailable);
         }

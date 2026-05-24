@@ -1,6 +1,6 @@
 # AmazonBestSellersExplorer
 
-AmazonBestSellersExplorer is a full-stack recruitment assignment built around one main user journey: browse Amazon software bestsellers, create an account, sign in, and manage a personal favorites list.
+AmazonBestSellersExplorer is a full-stack web application built around one main user journey: browse Amazon software bestsellers, create an account, sign in, and manage a personal favorites list.
 
 The solution combines a .NET 10 backend, an Angular 20 frontend, SQL Server persistence, and a RapidAPI integration used to fetch bestseller data.
 
@@ -52,9 +52,9 @@ The application provides:
 - Persistent favorites stored in SQL Server
 - Graceful bestseller-service error handling when RapidAPI is unavailable or misconfigured
 
-## Assignment Coverage
+## Implemented Features
 
-This repository covers the core task requirements:
+The application covers the main user and technical flows:
 
 - public bestsellers flow
 - registration and login
@@ -67,9 +67,9 @@ This repository covers the core task requirements:
 - backend validation and consistent error handling
 - auditability of key user operations
 
-## Beyond the Original Scope
+## Additional Improvements
 
-The repository also includes deliberate quality improvements beyond the base assignment:
+The repository also includes deliberate quality improvements that make the application more complete and maintainable:
 
 - GitHub Actions CI for backend and frontend validation
 - backend unit tests
@@ -94,7 +94,7 @@ Recent work added or refined:
 - improved authenticated bestseller startup flow so favorites are loaded first and heart states stay consistent after login
 - graceful handling of missing RapidAPI configuration without failing whole application startup
 - dedicated frontend error state for an unavailable or misconfigured bestseller service
-- UI and copy polish to make the app feel closer to a finished submission than a scaffold
+- UI and copy polish to make the app feel more complete and polished
 
 ## Architecture
 
@@ -288,7 +288,7 @@ Current CI scope:
 - frontend `npm ci`
 - frontend production build
 
-This CI setup is intentional and goes beyond the original assignment.
+This CI setup is intentional and keeps backend and frontend validation automated.
 
 Integration tests are currently not executed in GitHub Actions because they depend on SQL Server LocalDB, which is suitable for local development but not a reliable default for GitHub-hosted Linux runners. They can be added later after moving to a CI-friendly database strategy.
 

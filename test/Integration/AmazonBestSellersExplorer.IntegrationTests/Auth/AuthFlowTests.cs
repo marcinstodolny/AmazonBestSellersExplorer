@@ -120,4 +120,22 @@ public sealed class AuthFlowTests(IntegrationTestFixture fixture) : IAsyncLifeti
         Assert.Contains("Invalid username or password.", problemDetails.Detail);
     }
 
+    [Fact]
+    public async Task Login_ShouldReturn400_WhenRequestValidationFails()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(string.Empty, string.Empty));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = await response.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemDetails.Status);
+        Assert.Equal("Request validation failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains("Username is required.", problemDetails.Detail);
+        Assert.Contains("Password is required.", problemDetails.Detail);
+    }
+
 }

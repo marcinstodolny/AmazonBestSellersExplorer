@@ -14,9 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Domain\AmazonBestSellersExplorer.Domain\AmazonBestSellersExplorer.Domain.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
 </Project>
