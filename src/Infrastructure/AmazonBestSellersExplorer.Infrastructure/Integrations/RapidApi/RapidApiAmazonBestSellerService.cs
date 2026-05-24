@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Net.Http.Json;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
-using AmazonBestSellersExplorer.Application.Common;
 using AmazonBestSellersExplorer.Application.Features.Bestsellers.Contracts;
 using AmazonBestSellersExplorer.Infrastructure.Integrations.RapidApi.Models;
 using Microsoft.Extensions.Options;
@@ -43,7 +42,7 @@ public sealed class RapidApiAmazonBestSellerService(
     {
         if (!TryCreateBaseUri(_rapidApiOptions.BaseUrl, out var baseUri) || string.IsNullOrWhiteSpace(_rapidApiOptions.ApiKey) || string.IsNullOrWhiteSpace(_rapidApiOptions.ApiHost))
         {
-            throw new BestsellersConfigurationException();
+            throw new AmazonBestSellerServiceConfigurationException();
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseUri, BestSellersRequestUri));

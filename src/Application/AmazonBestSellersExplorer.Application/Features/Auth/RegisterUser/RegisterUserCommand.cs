@@ -32,20 +32,26 @@ public sealed class RegisterUserCommandHandler(
         var validationResult = await validator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail<AuthResponse>(validationResult.Errors.Select(static error => error.ErrorMessage).ToArray());
+            return Result.Fail<AuthResponse>(
+                validationResult.Errors.Select(static error => error.ErrorMessage).ToArray(),
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         var usernameExists = await userRepository.ExistsByUsernameAsync(command.Username, cancellationToken);
         if (usernameExists)
         {
-            return Result.Fail<AuthResponse>(ApplicationMessages.Auth.UsernameAlreadyTaken);
+            return Result.Fail<AuthResponse>(
+                ApplicationMessages.Auth.UsernameAlreadyTaken,
+                AuthErrorCode.UsernameAlreadyTaken.ToString());
         }
 
         var passwordHash = passwordHasher.HashPassword(command.Password);
         var userResult = User.Create(command.Username, passwordHash);
         if (userResult.IsFailed || !userResult.TryGetValue(out var user))
         {
-            return Result.Fail<AuthResponse>(userResult.Errors);
+            return Result.Fail<AuthResponse>(
+                userResult.Errors,
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         await userRepository.AddAsync(user, cancellationToken);
@@ -58,7 +64,9 @@ public sealed class RegisterUserCommandHandler(
 
         if (auditLogResult.IsFailed || !auditLogResult.TryGetValue(out var auditLog))
         {
-            return Result.Fail<AuthResponse>(auditLogResult.Errors);
+            return Result.Fail<AuthResponse>(
+                auditLogResult.Errors,
+                AuthErrorCode.ValidationFailed.ToString());
         }
 
         await auditLogRepository.AddAsync(auditLog, cancellationToken);

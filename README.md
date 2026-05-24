@@ -1,6 +1,6 @@
 # AmazonBestSellersExplorer
 
-AmazonBestSellersExplorer is a full-stack recruitment assignment built around one main user journey: browse Amazon software bestsellers, create an account, sign in, and manage a personal favorites list.
+AmazonBestSellersExplorer is a full-stack web application built around one main user journey: browse Amazon software bestsellers, create an account, sign in, and manage a personal favorites list.
 
 The solution combines a .NET 10 backend, an Angular 20 frontend, SQL Server persistence, and a RapidAPI integration used to fetch bestseller data.
 
@@ -52,7 +52,7 @@ The application provides:
 - Persistent favorites stored in SQL Server
 - Graceful bestseller-service error handling when RapidAPI is unavailable or misconfigured
 
-## Assignment Coverage
+## Feature Coverage
 
 This repository covers the core task requirements:
 

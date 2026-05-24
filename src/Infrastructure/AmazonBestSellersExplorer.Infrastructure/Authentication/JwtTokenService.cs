@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 using AmazonBestSellersExplorer.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AmazonBestSellersExplorer.Application.Abstractions.Services;
+using AmazonBestSellersExplorer.Application.Features.Auth.Contracts;
 
 namespace AmazonBestSellersExplorer.Infrastructure.Authentication;
 
