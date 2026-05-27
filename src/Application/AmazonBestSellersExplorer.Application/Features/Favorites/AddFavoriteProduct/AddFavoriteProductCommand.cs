@@ -19,7 +19,7 @@ public sealed record AddFavoriteProductCommand(
 
 public sealed class AddFavoriteProductCommandHandler(
     ICurrentUserContext currentUserContext,
-    IFavoriteProductRepository favoriteProductRepository,
+    IUserRepository userRepository,
     IAuditLogRepository auditLogRepository,
     IValidator<AddFavoriteProductCommand> validator,
     IUnitOfWork unitOfWork)
@@ -48,18 +48,21 @@ public sealed class AddFavoriteProductCommandHandler(
             ? null
             : command.ImageUrl.Trim();
 
-        var existingFavoriteProduct = await favoriteProductRepository.GetByUserIdAndAmazonProductIdAsync(
+        var user = await userRepository.GetByIdAsync(
             userId,
-            amazonProductId,
             cancellationToken);
 
-        if (existingFavoriteProduct is not null)
+        if (user is null)
+        {
+            return Result.Fail(ApplicationMessages.Favorites.UserNotAuthenticated);
+        }
+
+        if (user.HasFavorite(amazonProductId))
         {
             return Result.Fail(ApplicationMessages.Favorites.FavoriteProductAlreadyExists);
         }
 
-        var favoriteProductResult = FavoriteProduct.Create(
-            userId,
+        var favoriteProductResult = user.AddFavoriteProduct(
             amazonProductId,
             title,
             command.Price,
@@ -71,8 +74,6 @@ public sealed class AddFavoriteProductCommandHandler(
         {
             return Result.Fail(favoriteProductResult.Errors);
         }
-
-        await favoriteProductRepository.AddAsync(favoriteProduct, cancellationToken);
 
         var auditLogResult = AuditLog.Create(
             action: "FavoriteProductAdded",

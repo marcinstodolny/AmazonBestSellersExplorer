@@ -69,6 +69,29 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
     }
 
     [Fact]
+    public async Task AddFavorite_ShouldReturn400_WhenProductAlreadyExistsWithDifferentCasing()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+
+        var firstResponse = await client.PostAsJsonAsync(
+            "/api/favorites",
+            CreateFavoriteRequest("B09TESTCASE"));
+        var secondResponse = await client.PostAsJsonAsync(
+            "/api/favorites",
+            CreateFavoriteRequest("b09testcase"));
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+
+        var problemDetails = await secondResponse.ReadProblemDetailsAsync();
+
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemDetails.Status);
+        Assert.Equal("Favorites request failed.", problemDetails.Title);
+        Assert.NotNull(problemDetails.Detail);
+        Assert.Contains("Favorite product already exists.", problemDetails.Detail);
+    }
+
+    [Fact]
     public async Task AddFavorite_ShouldReturn400_WhenAmazonProductIdExceedsMaximumLength()
     {
         var client = await fixture.CreateAuthenticatedClientAsync();
@@ -156,6 +179,27 @@ public sealed class FavoritesFlowTests(IntegrationTestFixture fixture) : IAsyncL
             CreateFavoriteRequest("B09TEST004"));
 
         var deleteResponse = await client.DeleteAsync("/api/favorites/B09TEST004");
+
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        var getResponse = await client.GetAsync("/api/favorites");
+        var body = await getResponse.Content.ReadFromJsonAsync<List<FavoriteProductResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.NotNull(body);
+        Assert.Empty(body);
+    }
+
+    [Fact]
+    public async Task RemoveFavorite_ShouldDeleteSavedProduct_WhenProductIdCasingDiffers()
+    {
+        var client = await fixture.CreateAuthenticatedClientAsync();
+
+        await client.PostAsJsonAsync(
+            "/api/favorites",
+            CreateFavoriteRequest("B09TEST005"));
+
+        var deleteResponse = await client.DeleteAsync("/api/favorites/b09test005");
 
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 

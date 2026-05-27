@@ -13,7 +13,7 @@ public sealed record RemoveFavoriteProductCommand(
 
 public sealed class RemoveFavoriteProductCommandHandler(
     ICurrentUserContext currentUserContext,
-    IFavoriteProductRepository favoriteProductRepository,
+    IUserRepository userRepository,
     IAuditLogRepository auditLogRepository,
     IValidator<RemoveFavoriteProductCommand> validator,
     IUnitOfWork unitOfWork)
@@ -37,17 +37,28 @@ public sealed class RemoveFavoriteProductCommandHandler(
         var userId = currentUserContext.UserId.Value;
         var amazonProductId = command.AmazonProductId.Trim();
 
-        var favoriteProduct = await favoriteProductRepository.GetByUserIdAndAmazonProductIdAsync(
+        var user = await userRepository.GetByIdAsync(
             userId,
-            amazonProductId,
             cancellationToken);
+
+        if (user is null)
+        {
+            return Result.Fail(ApplicationMessages.Favorites.UserNotAuthenticated);
+        }
+
+        var favoriteProduct = user.FavoriteProducts.FirstOrDefault(product =>
+            string.Equals(product.AmazonProductId, amazonProductId, StringComparison.OrdinalIgnoreCase));
 
         if (favoriteProduct is null)
         {
             return Result.Fail(ApplicationMessages.Favorites.FavoriteProductDoesNotExist);
         }
 
-        favoriteProductRepository.Remove(favoriteProduct);
+        var removeFavoriteProductResult = user.RemoveFavoriteProduct(amazonProductId);
+        if (removeFavoriteProductResult.IsFailed)
+        {
+            return Result.Fail(removeFavoriteProductResult.Errors);
+        }
 
         var auditLogResult = AuditLog.Create(
             action: "FavoriteProductRemoved",
